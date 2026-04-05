@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Wired Diary</title>
+    <link>./index.html#/home</link>
+    <description>A Lain-inspired personal blog about the Wired, memory, signal, and cyber solitude.</description>
+    <language>zh-CN</language>
+    <item>
+      <title>Present Day, Present Time</title>
+      <link>./index.html#/post/1</link>
+      <guid>./index.html#/post/1</guid>
+      <pubDate>Mon, 06 Jul 1998 00:00:00 GMT</pubDate>
+      <description><![CDATA[深夜屏幕在空房间里发光，像另一种月亮。登入不再只是连线，而是让自己的一部分滑入他人的梦里。]]></description>
+    </item>
+    <item>
+      <title>Ghosts in the Packet Loss</title>
+      <link>./index.html#/post/2</link>
+      <guid>./index.html#/post/2</guid>
+      <pubDate>Fri, 14 Aug 1998 00:00:00 GMT</pubDate>
+      <description><![CDATA[丢包不只是技术问题。有些对话永远抵达不了对岸，于是空白本身也变成了讯息。]]></description>
+    </item>
+    <item>
+      <title>The Wired After Midnight</title>
+      <link>./index.html#/post/3</link>
+      <guid>./index.html#/post/3</guid>
+      <pubDate>Sat, 21 Nov 1998 00:00:00 GMT</pubDate>
+      <description><![CDATA[午夜后的 Wired 像一条不睡觉的地下河。身份不再稳定，名字被一层层协议薄膜包住。]]></description>
+    </item>
+    <item>
+      <title>Red Rooms, Green LEDs</title>
+      <link>./index.html#/post/4</link>
+      <guid>./index.html#/post/4</guid>
+      <pubDate>Tue, 02 Mar 1999 00:00:00 GMT</pubDate>
+      <description><![CDATA[线缆、路由器、绿灯和风扇声，让赛博朋克不止是视觉，而是一种室内气候。]]></description>
+    </item>
+    <item>
+      <title>Soft Reset for a Fractured Self</title>
+      <link>./index.html#/post/5</link>
+      <guid>./index.html#/post/5</guid>
+      <pubDate>Sun, 18 Apr 1999 00:00:00 GMT</pubDate>
+      <description><![CDATA[重置不是抹除，而是给碎裂的自我一次重新握手的机会。像清空缓存，却不清空梦。]]></description>
+    </item>
+    <item>
+      <title>Static Prayer for Abandoned BBS</title>
+      <link>./index.html#/post/6</link>
+      <guid>./index.html#/post/6</guid>
+      <pubDate>Thu, 27 May 1999 00:00:00 GMT</pubDate>
+      <description><![CDATA[那些废弃公告板仍然像死去恒星的光，消息已经不存在，回声却仍在传来。]]></description>
+    </item>
+  </channel>
+</rss>
