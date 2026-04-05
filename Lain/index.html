@@ -1,0 +1,2702 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wired Diary</title>
+  <style>
+    :root {
+      --bg-0: #030304;
+      --bg-1: #07080a;
+      --bg-2: #101116;
+      --panel: rgba(9, 10, 14, 0.56);
+      --panel-strong: rgba(9, 10, 14, 0.78);
+      --text: #f3f5fb;
+      --muted: #8b91a0;
+      --muted-soft: #b8bdc9;
+      --red: #ff3366;
+      --red-soft: rgba(255, 51, 102, 0.2);
+      --green: #00cc88;
+      --cyan: #33ccff;
+      --cyan-soft: rgba(51, 204, 255, 0.2);
+      --content-max: 840px;
+      --radius: 26px;
+      --header-height: 88px;
+      --transition-ms: 760ms;
+      --line: rgba(255, 255, 255, 0.09);
+      --line-soft: rgba(255, 255, 255, 0.04);
+      --shadow-lg: 0 30px 100px rgba(0, 0, 0, 0.42);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at 18% -4%, rgba(51, 204, 255, 0.12), transparent 28%),
+        radial-gradient(circle at 84% 12%, rgba(255, 51, 102, 0.11), transparent 30%),
+        radial-gradient(circle at 50% 120%, rgba(0, 204, 136, 0.06), transparent 36%),
+        linear-gradient(180deg, #06070a 0%, var(--bg-2) 38%, var(--bg-0) 100%);
+      color: var(--text);
+      font-family: "Fira Code", "Courier New", monospace;
+      overflow-x: hidden;
+    }
+
+    body {
+      position: relative;
+      line-height: 1.82;
+      letter-spacing: 0.018em;
+      transition: background 900ms ease, color 500ms ease;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body.route-easter {
+      background:
+        radial-gradient(circle at 12% 15%, rgba(255, 51, 102, 0.16), transparent 28%),
+        radial-gradient(circle at 85% 18%, rgba(51, 204, 255, 0.15), transparent 34%),
+        radial-gradient(circle at 50% 72%, rgba(0, 204, 136, 0.13), transparent 38%),
+        linear-gradient(180deg, #030406, #080910 42%, #020304);
+    }
+
+    ::selection {
+      background: rgba(255, 51, 102, 0.28);
+      color: #ffffff;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      width: 26px;
+      z-index: 9;
+      pointer-events: none;
+      opacity: 0.34;
+      background:
+        repeating-linear-gradient(
+          180deg,
+          transparent 0 14px,
+          rgba(255, 255, 255, 0.03) 14px 15px,
+          rgba(255, 51, 102, 0.06) 15px 16px,
+          transparent 16px 30px
+        );
+      mix-blend-mode: screen;
+      animation: edgeFlicker 5s steps(1) infinite;
+    }
+
+    body::before {
+      left: 0;
+      box-shadow: 8px 0 28px rgba(255, 51, 102, 0.12);
+    }
+
+    body::after {
+      right: 0;
+      box-shadow: -8px 0 28px rgba(51, 204, 255, 0.12);
+      animation-delay: 1.7s;
+    }
+
+    a {
+      color: #91ddff;
+      text-decoration: none;
+      position: relative;
+      transition:
+        color 220ms ease,
+        text-shadow 220ms ease,
+        transform 220ms ease,
+        filter 220ms ease,
+        opacity 220ms ease;
+    }
+
+    a:hover,
+    a:focus-visible {
+      color: #ffffff;
+      text-shadow:
+        -1px 0 var(--red),
+        1px 0 var(--cyan),
+        0 0 18px rgba(255, 255, 255, 0.08);
+      transform: skewX(-7deg) translateX(2px);
+      filter: brightness(1.1);
+      outline: none;
+    }
+
+    a.link-glitch::after {
+      content: attr(data-label);
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--red);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(2px, -1px);
+      clip-path: inset(0 0 55% 0);
+    }
+
+    a.link-glitch:hover::after,
+    a.link-glitch:focus-visible::after {
+      opacity: 0.55;
+      animation: linkSplit 420ms steps(2) infinite;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      background: linear-gradient(180deg, rgba(6, 8, 11, 0.82), rgba(10, 11, 15, 0.6));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 1rem 1.05rem;
+      color: var(--text);
+      transition:
+        border-color 220ms ease,
+        box-shadow 220ms ease,
+        transform 220ms ease,
+        background 220ms ease;
+      backdrop-filter: blur(8px);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(233, 233, 239, 0.42);
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: rgba(255, 51, 102, 0.35);
+      box-shadow:
+        0 0 0 1px rgba(255, 51, 102, 0.24),
+        0 18px 44px rgba(0, 0, 0, 0.22),
+        0 0 24px rgba(51, 204, 255, 0.12),
+        inset 0 0 18px rgba(255, 51, 102, 0.07);
+      transform: translateY(-1px);
+      animation: inputFlicker 1.9s linear infinite;
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    button {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      background:
+        linear-gradient(135deg, rgba(255, 51, 102, 0.12), rgba(51, 204, 255, 0.08)),
+        rgba(10, 12, 15, 0.76);
+      color: var(--text);
+      padding: 0.86rem 1.25rem;
+      cursor: pointer;
+      transition:
+        transform 220ms ease,
+        border-color 220ms ease,
+        box-shadow 220ms ease,
+        background 220ms ease;
+      backdrop-filter: blur(10px);
+    }
+
+    button:hover,
+    button:focus-visible {
+      transform: translateY(-2px) skewX(-2deg);
+      border-color: rgba(255, 51, 102, 0.42);
+      box-shadow:
+        0 12px 32px rgba(255, 51, 102, 0.14),
+        inset 0 0 18px rgba(51, 204, 255, 0.08);
+      outline: none;
+    }
+
+    mark {
+      background: rgba(255, 51, 102, 0.22);
+      color: #ffffff;
+      padding: 0.08em 0.16em;
+      border-radius: 4px;
+      box-shadow: 0 0 12px rgba(255, 51, 102, 0.16);
+    }
+
+    #bgCanvas,
+    #chromaticLayer,
+    #scanlines,
+    #noise,
+    #ghostFragments,
+    #transitionShroud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    #bgCanvas {
+      z-index: 0;
+    }
+
+    #chromaticLayer {
+      z-index: 1;
+    }
+
+    #ghostFragments {
+      z-index: 4;
+      overflow: hidden;
+    }
+
+    #scanlines {
+      z-index: 7;
+    }
+
+    #noise {
+      z-index: 8;
+    }
+
+    #transitionShroud {
+      z-index: 50;
+    }
+
+    #app {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      padding-bottom: 6rem;
+    }
+
+    .app-shell {
+      width: min(1280px, calc(100vw - 2.4rem));
+      margin: 0 auto;
+      padding-top: 1.2rem;
+      transition:
+        transform 400ms ease,
+        filter 400ms ease,
+        opacity 400ms ease;
+    }
+
+    .app-shell.page-exit {
+      animation: shellLeave var(--transition-ms) ease forwards;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0.9rem;
+      z-index: 18;
+      display: grid;
+      grid-template-columns: minmax(260px, 1.15fr) minmax(0, 0.95fr);
+      gap: 1.25rem;
+      align-items: center;
+      min-height: var(--header-height);
+      margin: 0 0 1.4rem;
+      padding: 1.15rem 1.35rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 32px;
+      background:
+        linear-gradient(180deg, rgba(10, 10, 14, 0.72), rgba(10, 11, 15, 0.48)),
+        radial-gradient(circle at 100% 0%, rgba(51, 204, 255, 0.1), transparent 35%),
+        radial-gradient(circle at 0% 100%, rgba(255, 51, 102, 0.08), transparent 40%);
+      box-shadow:
+        0 30px 70px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.015);
+      backdrop-filter: blur(22px);
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+    }
+
+    .eyebrow {
+      margin: 0 0 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.34em;
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.46);
+    }
+
+    .brand-title {
+      margin: 0;
+      font-size: clamp(1.45rem, 2.4vw, 2.75rem);
+      line-height: 0.98;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      max-width: 18ch;
+      text-wrap: balance;
+      text-shadow:
+        0 0 26px rgba(255, 255, 255, 0.03),
+        0 0 40px rgba(51, 204, 255, 0.05);
+    }
+
+    .brand-title small {
+      display: block;
+      margin-top: 0.38rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-weight: 400;
+      letter-spacing: 0.26em;
+      line-height: 1.6;
+    }
+
+    .nav-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .main-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .nav-link {
+      font-size: 0.74rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(233, 233, 239, 0.74);
+      padding: 0.6rem 0.8rem;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.015);
+    }
+
+    .nav-link.active {
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(135deg, rgba(255, 51, 102, 0.08), rgba(51, 204, 255, 0.05)),
+        rgba(255, 255, 255, 0.02);
+      text-shadow: 0 0 18px rgba(255, 51, 102, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.015);
+    }
+
+    .search-shell {
+      position: relative;
+      width: min(380px, 100%);
+      flex: 1 1 260px;
+    }
+
+    .search-shell input {
+      min-height: 52px;
+      padding-left: 3.2rem;
+      letter-spacing: 0.08em;
+    }
+
+    .search-shell::before {
+      content: "S";
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1.5rem;
+      height: 1.5rem;
+      display: grid;
+      place-items: center;
+      font-size: 0.68rem;
+      color: rgba(255, 255, 255, 0.54);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.025);
+      pointer-events: none;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(250px, 290px) minmax(0, 1fr);
+      gap: 1.45rem;
+      align-items: start;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: calc(var(--header-height) + 2.3rem);
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+    }
+
+    .panel {
+      position: relative;
+      isolation: isolate;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: var(--radius);
+      background:
+        linear-gradient(180deg, rgba(10, 10, 14, 0.74), rgba(8, 9, 12, 0.48)),
+        radial-gradient(circle at 100% 0%, rgba(255, 51, 102, 0.08), transparent 35%),
+        radial-gradient(circle at 0% 100%, rgba(51, 204, 255, 0.06), transparent 36%);
+      box-shadow:
+        var(--shadow-lg),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.015);
+      backdrop-filter: blur(18px);
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 22%),
+        radial-gradient(circle at top right, rgba(51, 204, 255, 0.06), transparent 24%);
+      opacity: 0.8;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .sidebar-panel {
+      padding: 1.18rem 1.08rem 1.08rem;
+    }
+
+    .panel-title {
+      margin: 0 0 1rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.66);
+    }
+
+    .signal-copy {
+      margin: 0;
+      color: var(--muted-soft);
+      font-size: 0.92rem;
+    }
+
+    .tag-cloud,
+    .archive-mini,
+    .signal-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .sidebar-actions {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+      margin-top: 0.9rem;
+    }
+
+    .ghost-note {
+      margin: 0.95rem 0 0;
+      font-size: 0.76rem;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.42);
+    }
+
+    .view {
+      min-height: calc(100vh - 13rem);
+      overflow: hidden;
+      padding-top: 0.2rem;
+    }
+
+    .view.route-enter {
+      animation: viewEnter 980ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+    }
+
+    .content-frame {
+      padding: 1.25rem 0 0;
+    }
+
+    .content-column {
+      width: min(var(--content-max), 100%);
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero {
+      position: relative;
+      padding: 2.6rem 2rem 2.1rem;
+      overflow: hidden;
+      border-radius: 34px;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(51, 204, 255, 0.16), transparent 32%),
+        radial-gradient(circle at 100% 30%, rgba(255, 51, 102, 0.14), transparent 36%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 36%, rgba(255, 255, 255, 0.01));
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
+      gap: 1.8rem;
+      align-items: end;
+    }
+
+    .hero h2,
+    .article-hero h1,
+    .about-hero h1,
+    .archive-hero h1,
+    .easter-copy h1 {
+      margin: 0;
+      line-height: 1.02;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .hero h2 {
+      font-size: clamp(2.8rem, 6vw, 5.8rem);
+      max-width: 8.8ch;
+      text-wrap: balance;
+      letter-spacing: 0.02em;
+    }
+
+    .hero p {
+      max-width: 58ch;
+      margin: 1.2rem 0 0;
+      color: var(--muted-soft);
+      font-size: 1rem;
+    }
+
+    .hero-status {
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      align-items: flex-start;
+      padding: 1.3rem 1.25rem;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 22px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015)),
+        rgba(5, 7, 10, 0.3);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .status-stack {
+      display: grid;
+      gap: 0.55rem;
+      width: 100%;
+    }
+
+    .status-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.7rem;
+      color: rgba(255, 255, 255, 0.58);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+    }
+
+    .status-line strong {
+      color: #ffffff;
+      font-weight: 400;
+      text-align: right;
+    }
+
+    .results-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 0.8rem;
+      align-items: center;
+      margin: 1.5rem 0 1rem;
+      padding: 0.1rem 0.4rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .footer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 0.9rem;
+      align-items: center;
+      padding: 1.8rem 0.75rem 0;
+      color: rgba(255, 255, 255, 0.48);
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .footer .status {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .footer .status em {
+      font-style: normal;
+      color: var(--green);
+    }
+
+    .ghost-button-wrap {
+      position: fixed;
+      right: 1.2rem;
+      bottom: 1.2rem;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .ghost-hint {
+      opacity: 0;
+      transform: translateX(10px);
+      transition: opacity 220ms ease, transform 220ms ease;
+      color: rgba(255, 255, 255, 0.62);
+      font-size: 0.8rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .ghost-gate {
+      width: 54px;
+      height: 54px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      border-color: rgba(255, 255, 255, 0.14);
+      background:
+        radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.1), transparent 44%),
+        linear-gradient(135deg, rgba(255, 51, 102, 0.16), rgba(51, 204, 255, 0.12));
+      backdrop-filter: blur(10px);
+    }
+
+    .ghost-gate:hover + .ghost-hint,
+    .ghost-gate:focus-visible + .ghost-hint {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    #chromaticLayer {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.02), transparent 45%),
+        radial-gradient(circle at 10% 70%, rgba(255, 51, 102, 0.04), transparent 25%),
+        radial-gradient(circle at 90% 45%, rgba(51, 204, 255, 0.04), transparent 28%);
+      mix-blend-mode: screen;
+      animation: chromaShift 14s linear infinite;
+    }
+
+    #scanlines {
+      opacity: 0.18;
+      background:
+        repeating-linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.04) 0 1px,
+          transparent 1px 4px
+        );
+      mix-blend-mode: screen;
+      animation: scanDrift 14s linear infinite;
+    }
+
+    #noise {
+      opacity: 0.055;
+      background:
+        radial-gradient(circle at 25% 20%, rgba(255, 255, 255, 0.6) 0 1px, transparent 1px 3px),
+        radial-gradient(circle at 70% 40%, rgba(255, 255, 255, 0.5) 0 1px, transparent 1px 3px),
+        radial-gradient(circle at 35% 80%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1px 3px),
+        radial-gradient(circle at 85% 70%, rgba(255, 255, 255, 0.55) 0 1px, transparent 1px 3px);
+      background-size: 180px 180px, 220px 220px, 200px 200px, 260px 260px;
+      animation: noiseShift 800ms steps(2) infinite;
+      mix-blend-mode: screen;
+    }
+
+    .ghost-fragment {
+      position: absolute;
+      color: rgba(255, 255, 255, 0.12);
+      font-size: clamp(0.65rem, 0.75vw, 0.88rem);
+      text-transform: uppercase;
+      letter-spacing: 0.28em;
+      opacity: 0;
+      transform: translateY(20px) skewX(-10deg);
+      animation: ghostFade 6s ease-in-out forwards;
+      filter: blur(0.2px);
+      text-shadow:
+        -10px 0 22px rgba(255, 51, 102, 0.1),
+        10px 0 22px rgba(51, 204, 255, 0.08);
+    }
+
+    #transitionShroud {
+      opacity: 0;
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.02) 22%, transparent 48%),
+        repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0 2px, transparent 2px 6px),
+        linear-gradient(180deg, rgba(255, 51, 102, 0.14), rgba(10, 10, 10, 0.92) 45%, rgba(51, 204, 255, 0.14));
+      transform-origin: center;
+    }
+
+    #transitionShroud.leave {
+      animation: shroudLeave var(--transition-ms) cubic-bezier(0.7, 0, 0.2, 1) forwards;
+    }
+
+    #transitionShroud.enter {
+      animation: shroudEnter calc(var(--transition-ms) + 160ms) ease forwards;
+    }
+
+    .tag-pill,
+    .archive-link,
+    .signal-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.6rem 0.86rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.012)),
+        rgba(255, 255, 255, 0.01);
+      color: rgba(233, 233, 239, 0.76);
+      font-size: 0.74rem;
+      letter-spacing: 0.08em;
+      transition:
+        transform 180ms ease,
+        border-color 180ms ease,
+        background 180ms ease,
+        box-shadow 180ms ease;
+    }
+
+    .tag-pill:hover,
+    .archive-link:hover,
+    .signal-chip:hover,
+    .tag-pill.is-active {
+      transform: translateY(-2px);
+      border-color: rgba(255, 51, 102, 0.35);
+      background:
+        linear-gradient(135deg, rgba(255, 51, 102, 0.08), rgba(51, 204, 255, 0.04)),
+        rgba(255, 255, 255, 0.015);
+      box-shadow: 0 10px 24px rgba(255, 51, 102, 0.08);
+      color: #ffffff;
+    }
+
+    .signal-chip em {
+      font-style: normal;
+      color: var(--green);
+    }
+
+    .post-list {
+      display: grid;
+      gap: 1.15rem;
+    }
+
+    .post-card {
+      position: relative;
+      padding: 1.45rem 1.45rem 1.25rem;
+      overflow: hidden;
+      border-radius: 28px;
+      transform: translateZ(0);
+      transition:
+        transform 260ms ease,
+        border-color 260ms ease,
+        box-shadow 260ms ease,
+        background 260ms ease;
+    }
+
+    .post-card::before {
+      content: "";
+      position: absolute;
+      inset: auto 1.4rem 1.05rem 1.4rem;
+      height: 1px;
+      background: linear-gradient(90deg, rgba(255, 51, 102, 0.48), rgba(51, 204, 255, 0.12), transparent);
+      opacity: 0.74;
+    }
+
+    .post-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 92% 10%, rgba(51, 204, 255, 0.08), transparent 20%),
+        radial-gradient(circle at 10% 100%, rgba(255, 51, 102, 0.06), transparent 24%);
+      pointer-events: none;
+      opacity: 0.65;
+    }
+
+    .post-card h3 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2.2vw, 2.35rem);
+      line-height: 1.05;
+      max-width: 14ch;
+      letter-spacing: 0.02em;
+      text-wrap: balance;
+    }
+
+    .post-card p {
+      margin: 1rem 0 0;
+      color: var(--muted-soft);
+      max-width: 62ch;
+      font-size: 0.96rem;
+    }
+
+    .post-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow:
+        0 32px 90px rgba(0, 0, 0, 0.42),
+        0 0 0 1px rgba(255, 255, 255, 0.015) inset;
+      background:
+        linear-gradient(180deg, rgba(12, 13, 18, 0.82), rgba(9, 10, 13, 0.58)),
+        radial-gradient(circle at 100% 0%, rgba(255, 51, 102, 0.1), transparent 35%),
+        radial-gradient(circle at 0% 100%, rgba(51, 204, 255, 0.08), transparent 36%);
+    }
+
+    .meta-row,
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      align-items: center;
+      color: rgba(255, 255, 255, 0.54);
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .meta-row {
+      margin-top: 1rem;
+    }
+
+    .tag-row {
+      margin-top: 1.1rem;
+      letter-spacing: 0.08em;
+      text-transform: none;
+    }
+
+    .tag-row a {
+      padding: 0.42rem 0.76rem;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.01)),
+        rgba(255, 255, 255, 0.008);
+      color: rgba(233, 233, 239, 0.74);
+      font-size: 0.74rem;
+    }
+
+    .article-hero,
+    .about-hero,
+    .archive-hero,
+    .easter-shell {
+      padding: 2rem 1.9rem;
+    }
+
+    .article-hero h1,
+    .about-hero h1,
+    .archive-hero h1,
+    .easter-copy h1 {
+      font-size: clamp(2.2rem, 4vw, 4.2rem);
+      max-width: 14ch;
+      text-wrap: balance;
+    }
+
+    .article-body,
+    .about-copy,
+    .archive-groups,
+    .comment-block {
+      padding: 1.7rem 1.7rem 1.8rem;
+      margin-top: 1.1rem;
+      border-radius: 30px;
+    }
+
+    .article-body p,
+    .about-copy p {
+      margin: 0 0 1.2rem;
+      color: rgba(233, 233, 239, 0.86);
+      max-width: 68ch;
+      font-size: 1rem;
+    }
+
+    .article-body h2,
+    .about-copy h2 {
+      margin: 2.4rem 0 0.95rem;
+      font-size: 1rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    .article-body blockquote {
+      margin: 1.8rem 0;
+      padding: 1.2rem 1.25rem 1.2rem 1.35rem;
+      border-left: 2px solid rgba(255, 51, 102, 0.42);
+      border-radius: 0 18px 18px 0;
+      background:
+        linear-gradient(90deg, rgba(255, 51, 102, 0.06), transparent 18%),
+        rgba(255, 255, 255, 0.02);
+      color: rgba(255, 255, 255, 0.86);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    }
+
+    .article-body ul,
+    .about-copy ul {
+      margin: 0 0 1.2rem;
+      padding-left: 1.25rem;
+      color: rgba(233, 233, 239, 0.78);
+    }
+
+    .article-body hr {
+      border: 0;
+      height: 1px;
+      margin: 2.3rem 0;
+      background: linear-gradient(90deg, rgba(255, 51, 102, 0.5), rgba(51, 204, 255, 0.14), transparent);
+    }
+
+    .comment-form {
+      display: grid;
+      gap: 0.95rem;
+      max-width: 680px;
+    }
+
+    .comment-list {
+      display: grid;
+      gap: 0.9rem;
+      margin: 1.2rem 0 0;
+    }
+
+    .comment-card {
+      padding: 1.05rem 1.1rem;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.01)),
+        rgba(255, 255, 255, 0.012);
+    }
+
+    .comment-card header {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.8rem;
+      margin-bottom: 0.4rem;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(255, 255, 255, 0.58);
+    }
+
+    .comment-card p {
+      margin: 0;
+      white-space: pre-wrap;
+      color: rgba(233, 233, 239, 0.86);
+    }
+
+    .comment-empty {
+      color: var(--muted);
+      margin: 1rem 0 0;
+    }
+
+    .archive-group {
+      margin-top: 1.2rem;
+    }
+
+    .archive-group:first-child {
+      margin-top: 0;
+    }
+
+    .archive-group ul {
+      list-style: none;
+      padding: 0;
+      margin: 0.9rem 0 0;
+      display: grid;
+      gap: 0.72rem;
+    }
+
+    .archive-group li {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1rem 1.05rem;
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.012)),
+        rgba(255, 255, 255, 0.012);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .archive-group time {
+      white-space: nowrap;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .matrix-card {
+      padding: 1.45rem;
+      min-height: 100%;
+    }
+
+    .matrix-card pre {
+      margin: 0;
+      white-space: pre-wrap;
+      color: rgba(233, 233, 239, 0.76);
+      font-size: 0.86rem;
+      line-height: 1.7;
+    }
+
+    .matrix-card strong {
+      color: var(--green);
+      font-weight: 400;
+    }
+
+    .easter-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+      gap: 1.8rem;
+      align-items: center;
+    }
+
+    .easter-copy p,
+    .easter-copy .countdown {
+      color: rgba(233, 233, 239, 0.8);
+    }
+
+    .easter-copy .countdown {
+      margin: 1rem 0;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-size: 0.76rem;
+    }
+
+    .easter-copy .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-top: 1.4rem;
+    }
+
+    .easter-visual {
+      display: grid;
+      place-items: center;
+      min-height: 320px;
+      padding: 1.4rem;
+      position: relative;
+    }
+
+    .easter-visual::before {
+      content: "";
+      position: absolute;
+      inset: 10% 16%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle, rgba(51, 204, 255, 0.2), transparent 60%),
+        radial-gradient(circle, rgba(255, 51, 102, 0.12), transparent 65%);
+      filter: blur(34px);
+      animation: pulseHalo 7s ease-in-out infinite;
+    }
+
+    .lain-frame {
+      position: relative;
+      width: 272px;
+      height: 272px;
+      display: grid;
+      place-items: center;
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01)),
+        rgba(5, 5, 8, 0.92);
+      overflow: hidden;
+      box-shadow:
+        0 26px 70px rgba(0, 0, 0, 0.44),
+        0 0 0 1px rgba(255, 51, 102, 0.04) inset;
+    }
+
+    .lain-frame img,
+    .lain-frame canvas {
+      width: 228px;
+      height: 228px;
+      object-fit: cover;
+      display: block;
+      border-radius: 24px;
+      position: relative;
+      z-index: 1;
+      animation: imageGlitch 6s steps(1) infinite;
+    }
+
+    .lain-frame::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 4px);
+      opacity: 0.22;
+      mix-blend-mode: screen;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .im-everywhere {
+      margin-top: 1.2rem;
+      font-size: clamp(2rem, 3.4vw, 2.8rem);
+      letter-spacing: 0.08em;
+      text-shadow:
+        -2px 0 rgba(255, 51, 102, 0.7),
+        2px 0 rgba(51, 204, 255, 0.7);
+      animation: glitchText 2.6s steps(2) infinite;
+    }
+
+    .empty-state {
+      padding: 1.35rem 1.4rem;
+      color: var(--muted);
+    }
+
+    .glitch-target {
+      position: relative;
+    }
+
+    .glitch-target.glitch-pulse::before,
+    .glitch-target.glitch-pulse::after {
+      content: attr(data-text);
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .glitch-target.glitch-pulse::before {
+      color: rgba(255, 51, 102, 0.7);
+      transform: translate(2px, -1px);
+      clip-path: inset(0 0 48% 0);
+      animation: glitchSlices 420ms steps(2) infinite;
+    }
+
+    .glitch-target.glitch-pulse::after {
+      color: rgba(51, 204, 255, 0.72);
+      transform: translate(-2px, 1px);
+      clip-path: inset(54% 0 0 0);
+      animation: glitchSlices 310ms steps(2) infinite reverse;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+
+    @media (max-width: 1080px) {
+      .topbar {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-tools {
+        justify-content: flex-start;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        order: 2;
+      }
+
+      .hero-grid,
+      .about-grid,
+      .easter-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-status {
+        border-left: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        padding-left: 0;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .app-shell {
+        width: min(100vw - 1rem, 1380px);
+      }
+
+      .topbar,
+      .hero,
+      .article-hero,
+      .about-hero,
+      .archive-hero,
+      .easter-shell,
+      .article-body,
+      .comment-block,
+      .about-copy,
+      .archive-groups {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .hero h2 {
+        max-width: 100%;
+      }
+
+      .archive-group li,
+      .footer,
+      .results-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .ghost-button-wrap {
+        right: 0.8rem;
+        bottom: 0.8rem;
+      }
+
+      .ghost-hint {
+        display: none;
+      }
+    }
+
+    @keyframes edgeFlicker {
+      0%, 100% { opacity: 0.2; }
+      20% { opacity: 0.32; }
+      22% { opacity: 0.12; }
+      25% { opacity: 0.28; }
+      56% { opacity: 0.34; }
+      57% { opacity: 0.08; }
+      58% { opacity: 0.3; }
+    }
+
+    @keyframes linkSplit {
+      0% { transform: translate(2px, -1px); }
+      50% { transform: translate(-2px, 0); }
+      100% { transform: translate(2px, -1px); }
+    }
+
+    @keyframes inputFlicker {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(255, 51, 102, 0.28), 0 0 24px rgba(51, 204, 255, 0.14), inset 0 0 18px rgba(255, 51, 102, 0.08); }
+      48% { box-shadow: 0 0 0 1px rgba(255, 51, 102, 0.22), 0 0 26px rgba(255, 51, 102, 0.1), inset 0 0 18px rgba(51, 204, 255, 0.08); }
+      49% { box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.16), 0 0 32px rgba(51, 204, 255, 0.16), inset 0 0 18px rgba(255, 51, 102, 0.08); }
+    }
+
+    @keyframes scanDrift {
+      from { transform: translateY(-30px); }
+      to { transform: translateY(30px); }
+    }
+
+    @keyframes noiseShift {
+      from { transform: translate3d(0, 0, 0); }
+      to { transform: translate3d(-30px, 20px, 0); }
+    }
+
+    @keyframes chromaShift {
+      0%, 100% { transform: scale(1) translate3d(0, 0, 0); }
+      50% { transform: scale(1.05) translate3d(0, -1.2%, 0); }
+    }
+
+    @keyframes shroudLeave {
+      0% { opacity: 0; transform: scaleY(0.08) scaleX(0.92); filter: blur(0); }
+      35% { opacity: 0.72; }
+      100% { opacity: 1; transform: scaleY(1) scaleX(1); filter: blur(1px); }
+    }
+
+    @keyframes shroudEnter {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.06); }
+    }
+
+    @keyframes shellLeave {
+      0% { opacity: 1; transform: scale(1); filter: blur(0); }
+      34% { transform: scale(1.01) skewX(-0.8deg); }
+      100% { opacity: 0; transform: scale(1.03) skewX(1.6deg); filter: blur(4px) saturate(1.18); }
+    }
+
+    @keyframes viewEnter {
+      0% {
+        opacity: 0;
+        transform: translateY(28px) scale(0.99);
+        filter: blur(12px);
+        clip-path: inset(0 0 100% 0);
+      }
+      55% {
+        opacity: 1;
+        clip-path: inset(0 0 0 0);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+        clip-path: inset(0 0 0 0);
+      }
+    }
+
+    @keyframes ghostFade {
+      0% { opacity: 0; transform: translateY(16px) skewX(-12deg); }
+      15% { opacity: 0.14; }
+      70% { opacity: 0.14; }
+      100% { opacity: 0; transform: translateY(-14px) skewX(-4deg); }
+    }
+
+    @keyframes pulseHalo {
+      0%, 100% { opacity: 0.8; transform: scale(0.92); }
+      50% { opacity: 1; transform: scale(1.06); }
+    }
+
+    @keyframes imageGlitch {
+      0%, 100% { transform: translate3d(0, 0, 0); filter: saturate(0.92); }
+      8% { transform: translate3d(0, 0, 0); }
+      9% { transform: translate3d(-4px, 0, 0); filter: hue-rotate(-8deg) saturate(1.16); }
+      10% { transform: translate3d(3px, 1px, 0); }
+      11% { transform: translate3d(0, 0, 0); }
+      57% { transform: translate3d(0, 0, 0); }
+      58% { transform: translate3d(2px, -1px, 0); filter: hue-rotate(8deg) saturate(1.12); }
+      59% { transform: translate3d(-3px, 1px, 0); }
+      60% { transform: translate3d(0, 0, 0); }
+    }
+
+    @keyframes glitchText {
+      0%, 100% { opacity: 1; transform: translate3d(0, 0, 0); }
+      15% { text-shadow: -2px 0 rgba(255, 51, 102, 0.8), 2px 0 rgba(51, 204, 255, 0.8); }
+      16% { text-shadow: 3px 0 rgba(255, 51, 102, 0.8), -3px 0 rgba(51, 204, 255, 0.8); transform: translate3d(1px, 0, 0); }
+      17% { text-shadow: -2px 0 rgba(255, 51, 102, 0.8), 2px 0 rgba(51, 204, 255, 0.8); transform: translate3d(0, 0, 0); }
+    }
+
+    @keyframes glitchSlices {
+      0% { transform: translate(2px, -1px); }
+      50% { transform: translate(-2px, 1px); }
+      100% { transform: translate(2px, -1px); }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bgCanvas" aria-hidden="true"></canvas>
+  <div id="chromaticLayer" aria-hidden="true"></div>
+  <div id="ghostFragments" aria-hidden="true"></div>
+  <div id="scanlines" aria-hidden="true"></div>
+  <div id="noise" aria-hidden="true"></div>
+  <div id="transitionShroud" aria-hidden="true"></div>
+
+  <div id="app">
+    <div class="app-shell" id="appShell">
+      <header class="topbar panel">
+        <div class="brand">
+          <div class="eyebrow">Present day, present time...</div>
+          <h1 class="brand-title glitch-target" data-text="Wired Diary">
+            Wired Diary
+            <small>serial experiments in memory, loneliness, and the net</small>
+          </h1>
+        </div>
+        <div class="nav-tools">
+          <nav class="main-nav" aria-label="Primary">
+            <a class="nav-link link-glitch" data-label="Home" data-route="#/home" href="#/home">Home</a>
+            <a class="nav-link link-glitch" data-label="About" data-route="#/about" href="#/about">About</a>
+            <a class="nav-link link-glitch" data-label="Archive" data-route="#/archive" href="#/archive">Archive</a>
+            <a class="nav-link link-glitch" data-label="RSS" href="./rss.xml" target="_blank" rel="noreferrer">RSS</a>
+          </nav>
+          <label class="search-shell" for="searchInput">
+            <span class="sr-only">搜索文章</span>
+            <input id="searchInput" type="search" placeholder="Search titles / memory fragments">
+          </label>
+        </div>
+      </header>
+
+      <div class="layout">
+        <aside class="sidebar">
+          <section class="panel sidebar-panel">
+            <h2 class="panel-title">Signal</h2>
+            <p class="signal-copy">The Wired is less a place than a weather pattern. Filter the noise, or let it swallow the room.</p>
+            <div class="signal-grid" id="signalGrid"></div>
+            <div class="sidebar-actions">
+              <button type="button" id="audioToggle">Hum // Off</button>
+              <button type="button" id="clearFilterButton">Clear Filter</button>
+            </div>
+            <p class="ghost-note">Shortcut: press <strong>S</strong> to focus search, press <strong>L</strong> to enter the Wired.</p>
+          </section>
+
+          <section class="panel sidebar-panel">
+            <h2 class="panel-title">Tag Cloud</h2>
+            <div class="tag-cloud" id="tagCloud"></div>
+          </section>
+
+          <section class="panel sidebar-panel">
+            <h2 class="panel-title">Archive Index</h2>
+            <div class="archive-mini" id="archiveMini"></div>
+          </section>
+        </aside>
+
+        <main id="view" class="view" tabindex="-1" aria-live="polite"></main>
+      </div>
+
+      <footer class="footer">
+        <div id="wiredClock">Wired sync pending...</div>
+        <div class="status" id="footerStatus">Connection: <em>stabilizing</em></div>
+      </footer>
+    </div>
+  </div>
+
+  <div class="ghost-button-wrap">
+    <button class="ghost-gate" id="easterGate" type="button" aria-label="Enter the Wired">#</button>
+    <span class="ghost-hint">Enter the Wired</span>
+  </div>
+
+  <script>
+    const POSTS = [
+      {
+        id: "1",
+        title: "Present Day, Present Time",
+        date: "1998-07-06",
+        tags: ["Lain", "Memory", "Signal"],
+        excerpt: "深夜屏幕在空房间里发光，像另一种月亮。登入不再只是连线，而是让自己的一部分滑入他人的梦里。",
+        content: `
+          <p>有人说互联网只会复制现实，可当线路开始在天花板上生长、当主机风扇像昆虫一样在凌晨鸣叫，现实也会被反过来改写。那时房间仍然很小，墙纸泛黄，桌上的显示器却像一个过亮的窗口。</p>
+          <p>我第一次认真地感到“上线”不是一个动作，而是一种姿态。你把身体留在椅子上，把名字留在通讯录里，把更轻的一部分自己投进发光的噪点。那个版本的你说话更慢，却更诚实。</p>
+          <blockquote>Present day, present time... 也许只是提醒我们，所谓现在从来都不稳定。</blockquote>
+          <h2>线路如何改变记忆</h2>
+          <p>我们记住一个人，不再只依赖她的脸和声音，而是依赖她在 BBS 留下的尾缀、她在聊天室里反复使用的拼写习惯、她在凌晨两点总会出现的上线时间。记忆开始带着协议栈的味道。</p>
+          <p>而玲音的魅力正在于此。她像一个还没决定边界的接口，被房间、学校、家庭和 Wired 同时读取。她不是单纯的角色，更像一段正在执行中的意识脚本。</p>
+          <hr>
+          <p>如果现实是一层表皮，那么我们对彼此的想象，才是真正开始发热的主板。</p>
+        `
+      },
+      {
+        id: "2",
+        title: "Ghosts in the Packet Loss",
+        date: "1998-08-14",
+        tags: ["Network", "Glitch", "Loneliness"],
+        excerpt: "丢包不只是技术问题。有些对话永远抵达不了对岸，于是空白本身也变成了讯息。",
+        content: `
+          <p>网络中的幽灵并不总是由故障生成。有时它们只是延迟里堆积起来的人类情绪。你发送一段话，状态栏短暂停滞，然后世界像吞咽那样安静了半秒。那半秒足够让怀疑长出形状。</p>
+          <p>在赛博文化里，最令人着迷的不是完美同步，而是那些错误的接缝。图像错位一像素，语音拉成长丝，窗口一闪一闪像是在眨眼。机器在失误时突然显得像生命。</p>
+          <h2>孤独的协议</h2>
+          <p>我们把孤独误解成没有连接，其实更多时候它发生在连接已经建立之后。频道畅通，头像亮起，输入框也还温热，但真正想说的话在传输层就已经碎裂了。</p>
+          <p>这也是我偏爱 glitch 的原因。故障不是破坏美感，而是在提醒你，美感本来就寄居在不稳定里。</p>
+          <ul>
+            <li>延迟让情绪有了回声。</li>
+            <li>错位让图像拥有幽灵边缘。</li>
+            <li>丢包让沉默不再无意义。</li>
+          </ul>
+          <p>有些夜晚，我会故意把视频窗口缩到很小，只为了看到压缩噪点怎样在一张脸上流动。那是现实被带宽重新雕刻的瞬间。</p>
+        `
+      },
+      {
+        id: "3",
+        title: "The Wired After Midnight",
+        date: "1998-11-21",
+        tags: ["Wired", "Identity", "Protocol"],
+        excerpt: "午夜后的 Wired 像一条不睡觉的地下河。身份不再稳定，名字被一层层协议薄膜包住。",
+        content: `
+          <p>午夜之后连线，最先变化的不是速度，而是语气。白天人们用完整句子说话，像在办公桌前。夜里大家开始用残片、缩写、括号和没有收尾的比喻。语言自己进入了省电模式。</p>
+          <p>我越来越相信，身份是一组不断协商的版本号。白天的我擅长礼貌，夜里的我擅长删除，凌晨三点的我只想当一团匿名电流。玲音比任何角色都更早地让这种分裂显影。</p>
+          <h2>谁在使用谁</h2>
+          <p>我们以为自己在使用网络，其实更多时候是网络在训练我们的感知。刷新页面的频率、对通知红点的紧张、对在线状态的依赖，这些微小的身体动作已经是一种宗教。</p>
+          <blockquote>协议不是冷冰冰的标准，它更像现代人的无形礼法。</blockquote>
+          <p>所以我喜欢把博客写成一个半损坏的接口。文章不是为了说服谁，而像是让某种电流在这里短暂停留。</p>
+          <p>如果你也在深夜里读到这里，请把屏幕亮度再调低一点。真正的内容，总是在接近看不清的时候浮出来。</p>
+        `
+      },
+      {
+        id: "4",
+        title: "Red Rooms, Green LEDs",
+        date: "1999-03-02",
+        tags: ["Cyberpunk", "Hardware", "Diary"],
+        excerpt: "我喜欢那些真实存在的器材感。线缆、路由器、绿灯和风扇声，让赛博朋克不止是视觉，而是一种室内气候。",
+        content: `
+          <p>真正打动我的从来不是霓虹本身，而是霓虹照在廉价塑料外壳上的样子。那种稍显粗糙的反光，既没有未来主义的完美，也没有复古的怀旧，它只是诚实地暴露出技术与生活缠在一起的狼狈。</p>
+          <p>我房间里最有气氛的时刻，是所有设备同时工作却没人说话的时候。红色待机灯像远处的塔台，绿色网口灯规律地闪烁，电流声把整个空间填成一个没有边界的盒子。</p>
+          <h2>玲音的房间学</h2>
+          <p>《玲音》里的房间像是一种意识结构图。线缆不是装饰，而是角色心理状态的实体化。你看见越来越多的设备堆叠，就知道某种边界正在消失。</p>
+          <p>所以这篇文章写给器材感，也写给那些愿意在真实硬件噪声里寻找诗意的人。赛博空间不是脱离物质的云，它总要经过一块发热的电路板。</p>
+          <p>当风扇继续转，灯继续闪，人就会误以为自己也可以不睡。</p>
+        `
+      },
+      {
+        id: "5",
+        title: "Soft Reset for a Fractured Self",
+        date: "1999-04-18",
+        tags: ["Reset", "Self", "Ritual"],
+        excerpt: "重置不是抹除，而是给碎裂的自我一次重新握手的机会。像清空缓存，却不清空梦。",
+        content: `
+          <p>每次系统重启前都会有那一瞬间，风扇停住，指示灯暗下去，房间短暂失去回应。那几秒钟很像人在崩溃前的沉默，既恐惧又纯净。</p>
+          <p>我渐渐把 reset 当成一种仪式。清理桌面、关闭窗口、拔掉几根多余的线，让空间重新呼吸。不是为了恢复秩序，而是为了确认混乱仍然由我命名。</p>
+          <h2>碎片并不需要被修复成完整</h2>
+          <p>《玲音》最动人的地方在于它没有把分裂视为失败。一个人可以同时在现实里迟钝、在 Wired 里发光、在他人的记忆里失真。这些版本并不互斥，它们只是并行运行。</p>
+          <p>所以 soft reset 的真正意义，是允许自己带着裂纹继续存在。保留噪点，保留回声，保留那些不稳定但真实的信号。</p>
+          <blockquote>Reset 之后仍然留下来的，往往才是你真正无法删除的部分。</blockquote>
+          <p>如果今晚你也有点失真，就让屏幕暗下来一点，听线路自己慢慢冷却。</p>
+        `
+      },
+      {
+        id: "6",
+        title: "Static Prayer for Abandoned BBS",
+        date: "1999-05-27",
+        tags: ["Archive", "BBS", "Noise"],
+        excerpt: "那些废弃公告板仍然像死去恒星的光，消息已经不存在，回声却仍在传来。",
+        content: `
+          <p>我偶尔会回到一些已经没有访客的站点。页面没有响应式布局，没有社交登录，没有推荐算法，只有粗糙的背景图、闪烁的计数器，以及一排无人更新的链接。</p>
+          <p>它们像被遗忘的 BBS 神龛，页面本身已经成为纪念物。你不是去那里获取信息，而是去确认一种曾经存在过的连接方式。</p>
+          <h2>档案的温度</h2>
+          <p>档案并不冰冷，至少在网络世界里不是。旧帖子会携带当年的显示器分辨率、当年的措辞习惯，甚至携带一整个时代对未来的误判。阅读它们，像在拾起另一个年代留下的静电。</p>
+          <p>也因此，我想让博客保留归档页。不是为了整齐，而是为了让时间以月份的方式压在页面上，提醒我们每一段连接都曾经有开始和结束。</p>
+          <p>如果一座站点已经没人访问，它并没有真正死去。它只是退回了背景层，变成了噪点的一部分。</p>
+        `
+      }
+    ];
+
+    const PHRASES = [
+      "Wired",
+      "Reset",
+      "Present day, present time...",
+      "No matter where you go, everyone is connected.",
+      "Protocol / Memory / Signal",
+      "Close the world, open the next layer.",
+      "God is here?",
+      "The room remembers every packet."
+    ];
+
+    const GLYPHS = ["ワイヤード", "セラピー", "ナビ", "レイン", "プロトコル", "エゴ", "リセット", "現実", "幻想"];
+    const BURST_WORDS = ["Reset", "Lain", "Wired", "Protocol", "Signal"];
+
+    const state = {
+      activeTag: "",
+      searchTerm: "",
+      currentRoute: "#/home",
+      pendingRoute: "",
+      isTouch: window.matchMedia("(pointer: coarse)").matches || "ontouchstart" in window,
+      lastPointerAt: 0,
+      glyphs: [],
+      motes: [],
+      bursts: [],
+      streams: [],
+      pointer: {
+        x: window.innerWidth / 2,
+        y: window.innerHeight / 2,
+        active: false
+      },
+      easterTimer: null,
+      easterCountdown: 10,
+      audio: {
+        ctx: null,
+        gain: null,
+        hum: null,
+        overtone: null,
+        wobble: null,
+        active: false
+      },
+      memoryComments: {}
+    };
+
+    const dom = {
+      body: document.body,
+      view: document.getElementById("view"),
+      appShell: document.getElementById("appShell"),
+      shroud: document.getElementById("transitionShroud"),
+      searchInput: document.getElementById("searchInput"),
+      tagCloud: document.getElementById("tagCloud"),
+      archiveMini: document.getElementById("archiveMini"),
+      signalGrid: document.getElementById("signalGrid"),
+      audioToggle: document.getElementById("audioToggle"),
+      clearFilterButton: document.getElementById("clearFilterButton"),
+      ghostFragments: document.getElementById("ghostFragments"),
+      easterGate: document.getElementById("easterGate"),
+      wiredClock: document.getElementById("wiredClock"),
+      footerStatus: document.getElementById("footerStatus"),
+      navLinks: Array.from(document.querySelectorAll(".nav-link")),
+      canvas: document.getElementById("bgCanvas")
+    };
+
+    const ctx = dom.canvas.getContext("2d");
+    const COMMENT_STORAGE_KEY = "wired-diary-comments-v1";
+    let dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    let lastFrame = performance.now();
+    let footerStatusIndex = 0;
+    let fragmentIndex = 0;
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function highlightText(value, query) {
+      const safe = escapeHtml(value);
+      if (!query) {
+        return safe;
+      }
+      const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      return safe.replace(new RegExp(escapedQuery, "gi"), (match) => `<mark>${match}</mark>`);
+    }
+
+    function stripHtml(html) {
+      const temp = document.createElement("div");
+      temp.innerHTML = html;
+      return temp.textContent || temp.innerText || "";
+    }
+
+    function formatDate(dateInput, options) {
+      const date = typeof dateInput === "string" && /^\d{4}-\d{2}-\d{2}$/.test(dateInput)
+        ? new Date(`${dateInput}T08:00:00`)
+        : new Date(dateInput);
+      return new Intl.DateTimeFormat("zh-CN", options || {
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      }).format(date);
+    }
+
+    function monthKey(dateString) {
+      return dateString.slice(0, 7);
+    }
+
+    function getAllTags() {
+      const counts = new Map();
+      POSTS.forEach((post) => {
+        post.tags.forEach((tag) => counts.set(tag, (counts.get(tag) || 0) + 1));
+      });
+      return Array.from(counts.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    }
+
+    function getFilteredPosts() {
+      const query = state.searchTerm.trim().toLowerCase();
+      return POSTS.filter((post) => {
+        const matchesTag = !state.activeTag || post.tags.includes(state.activeTag);
+        if (!matchesTag) {
+          return false;
+        }
+        if (!query) {
+          return true;
+        }
+        const haystack = [post.title, post.excerpt, stripHtml(post.content), post.tags.join(" ")].join(" ").toLowerCase();
+        return haystack.includes(query);
+      }).sort((a, b) => b.date.localeCompare(a.date));
+    }
+
+    function getSearchSnippet(post) {
+      const query = state.searchTerm.trim().toLowerCase();
+      if (!query) {
+        return highlightText(post.excerpt, "");
+      }
+      const plain = stripHtml(post.content);
+      if (post.title.toLowerCase().includes(query)) {
+        return highlightText(post.excerpt, state.searchTerm);
+      }
+      const index = plain.toLowerCase().indexOf(query);
+      const source = index === -1 ? post.excerpt : plain.slice(Math.max(0, index - 50), Math.min(plain.length, index + 120));
+      const prefix = index > 50 ? "... " : "";
+      const suffix = index !== -1 && index + 120 < plain.length ? " ..." : "";
+      return highlightText(prefix + source + suffix, state.searchTerm);
+    }
+
+    function normalizeRoute(hash) {
+      if (!hash || hash === "#/" || hash === "#") {
+        return "#/home";
+      }
+      if (/^#\/post\/\d+$/.test(hash) || ["#/home", "#/about", "#/archive", "#/easter"].includes(hash)) {
+        return hash;
+      }
+      return "#/home";
+    }
+
+    function currentRouteLabel() {
+      if (state.currentRoute.startsWith("#/post/")) {
+        return "Post";
+      }
+      if (state.currentRoute === "#/archive") {
+        return "Archive";
+      }
+      if (state.currentRoute === "#/about") {
+        return "About";
+      }
+      if (state.currentRoute === "#/easter") {
+        return "Easter";
+      }
+      return "Home";
+    }
+
+    function renderTagLinks(tags) {
+      return tags.map((tag) => `
+        <a href="#/home" data-tag="${escapeHtml(tag)}" class="tag-link link-glitch" data-label="${escapeHtml(tag)}">${escapeHtml(tag)}</a>
+      `).join("");
+    }
+
+    function renderHome() {
+      const posts = getFilteredPosts();
+      const total = posts.length;
+      const activeLabel = state.activeTag ? `tag: ${state.activeTag}` : "all signals";
+      const searchLabel = state.searchTerm ? ` / search: "${escapeHtml(state.searchTerm)}"` : "";
+      const cards = posts.map((post) => `
+        <article class="panel post-card">
+          <h3 class="glitch-target" data-text="${escapeHtml(post.title)}">
+            <a class="link-glitch" data-label="${escapeHtml(post.title)}" href="#/post/${post.id}" data-route="#/post/${post.id}">
+              ${highlightText(post.title, state.searchTerm)}
+            </a>
+          </h3>
+          <div class="meta-row">
+            <span>${formatDate(post.date)}</span>
+            <span>${post.tags.join(" / ")}</span>
+          </div>
+          <p>${getSearchSnippet(post)}</p>
+          <div class="tag-row">${renderTagLinks(post.tags)}</div>
+        </article>
+      `).join("");
+
+      return `
+        <section class="panel hero">
+          <div class="hero-grid">
+            <div>
+              <div class="eyebrow">Serial Experiments Blog</div>
+              <h2 class="glitch-target" data-text="Loneliness has a bandwidth.">Loneliness has a bandwidth.</h2>
+              <p>这是一个向《玲音》、老互联网残响与深夜赛博孤独感致敬的个人博客。每一次点击都经过轻微故障，每一篇文章都像从 Wired 漂回来的缓存片段。</p>
+            </div>
+            <div class="hero-status">
+              <div class="status-stack">
+                <div class="status-line"><span>Visible Layer</span><strong>Reality / Wired</strong></div>
+                <div class="status-line"><span>Filter</span><strong>${escapeHtml(activeLabel)}${searchLabel}</strong></div>
+                <div class="status-line"><span>Entries</span><strong>${total.toString().padStart(2, "0")}</strong></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <div class="content-frame content-column">
+          <div class="results-bar">
+            <span>Showing ${total} memory fragment${total === 1 ? "" : "s"}.</span>
+            <span>${state.searchTerm ? "Keyword highlight active." : "Hover links to disturb the signal."}</span>
+          </div>
+          <section class="post-list">
+            ${cards || `<div class="panel empty-state">没有匹配到任何文章。尝试清空标签或换一个关键词。</div>`}
+          </section>
+        </div>
+      `;
+    }
+
+    function renderAbout() {
+      return `
+        <section class="panel about-hero">
+          <div class="eyebrow">About This Node</div>
+          <h1 class="glitch-target" data-text="A small room with too many cables.">A small room with too many cables.</h1>
+          <p>这个站点不是为了复制某个具体页面，而是想复刻那种被线路、房间、屏幕和意识同时占据的状态。它向 fauux 的孤独感、老网页的粗粝气质以及《玲音》的冷峻温度致意。</p>
+        </section>
+        <div class="about-grid">
+          <section class="panel about-copy">
+            <h2>Why This Exists</h2>
+            <p>我想做一个几乎全黑的博客，让鼠标轨迹成为最亮的东西，让阅读像在暗处接近某种活着的接口。文章内容围绕《玲音》、赛博文化与网络记忆展开，但真正的主题始终是人如何被连接改变。</p>
+            <p>这里保留了归档、RSS、标签、搜索与评论，因为旧时代的个人站点总是把“留下痕迹”看得很重。评论保存在本地设备里，像是你的浏览器自己记住了这一切。</p>
+            <h2>Interaction Notes</h2>
+            <ul>
+              <li>鼠标或触摸会唤醒 Canvas 背景中的片假文字与粒子残影。</li>
+              <li>点击链接时，页面会在真正切换前先发生一次短暂故障。</li>
+              <li>按下 <strong>L</strong> 或右下角按钮可进入彩蛋页，十秒后自动返回。</li>
+            </ul>
+          </section>
+          <aside class="panel matrix-card">
+            <pre>NODE PROFILE
+
+TYPE: personal archive / phantom terminal
+THEME: lain / wired / CRT / signal decay
+STACK: single-file HTML + CSS + ES6 + Canvas
+COMMENTS: <strong>localStorage</strong>
+ROUTING: hash-based pages with transition hooks
+RSS: static <strong>rss.xml</strong>
+AMBIENCE: optional synthesized hum
+
+There is no clean line between
+the reader and the interface.
+There is only latency.</pre>
+          </aside>
+        </div>
+      `;
+    }
+
+    function renderArchive() {
+      const filteredPosts = getFilteredPosts();
+      const groups = filteredPosts.slice()
+        .sort((a, b) => b.date.localeCompare(a.date))
+        .reduce((acc, post) => {
+          const key = monthKey(post.date);
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(post);
+          return acc;
+        }, {});
+
+      const archiveMarkup = Object.entries(groups).map(([month, posts]) => `
+        <section class="archive-group">
+          <h2>${month}</h2>
+          <ul>
+            ${posts.map((post) => `
+              <li>
+                <a class="link-glitch" data-label="${escapeHtml(post.title)}" href="#/post/${post.id}" data-route="#/post/${post.id}">
+                  ${highlightText(post.title, state.searchTerm)}
+                </a>
+                <time datetime="${post.date}">${formatDate(post.date)}</time>
+              </li>
+            `).join("")}
+          </ul>
+        </section>
+      `).join("");
+
+      return `
+        <section class="panel archive-hero">
+          <div class="eyebrow">Monthly Signal Cache</div>
+          <h1 class="glitch-target" data-text="Time lands harder when it is grouped by month.">Time lands harder when it is grouped by month.</h1>
+          <p>归档页把文章压缩成月份，像把记忆装进不同编号的抽屉。它们不是整齐的，它们只是还没有完全消失。当前匹配 ${filteredPosts.length} 篇记录。</p>
+        </section>
+        <section class="panel archive-groups content-column">${archiveMarkup || `<div class="empty-state">当前筛选条件下没有可归档的记录。</div>`}</section>
+      `;
+    }
+
+    function renderPost(postId) {
+      const post = POSTS.find((item) => item.id === postId);
+      if (!post) {
+        return `
+          <section class="panel article-hero">
+            <div class="eyebrow">404 / Signal Lost</div>
+            <h1>Entry not found.</h1>
+            <p>这篇文章可能从未存在，或者只是已经退回到噪点里。</p>
+            <p><a class="link-glitch" data-label="Return home" href="#/home" data-route="#/home">Return home</a></p>
+          </section>
+        `;
+      }
+
+      return `
+        <article class="content-column">
+          <section class="panel article-hero">
+            <div class="eyebrow">${formatDate(post.date)}</div>
+            <h1 class="glitch-target" data-text="${escapeHtml(post.title)}">${escapeHtml(post.title)}</h1>
+            <div class="tag-row">${renderTagLinks(post.tags)}</div>
+          </section>
+          <section class="panel article-body">${post.content}</section>
+          <section class="panel comment-block">
+            <h2>Comment Buffer</h2>
+            <p class="signal-copy">评论只保存在你的浏览器里，像一段本地缓存过的回声。</p>
+            <form class="comment-form" id="commentForm" data-post-id="${post.id}">
+              <input type="text" id="commentName" maxlength="30" placeholder="Your name / handle" required>
+              <textarea id="commentBody" maxlength="600" placeholder="Leave a signal in the noise..." required></textarea>
+              <button type="submit">Store Comment</button>
+            </form>
+            <div id="commentList" class="comment-list"></div>
+          </section>
+        </article>
+      `;
+    }
+
+    function renderEaster() {
+      return `
+        <section class="panel easter-shell content-column">
+          <div class="easter-copy">
+            <div class="eyebrow">Enter the Wired</div>
+            <h1 class="glitch-target" data-text="I&#39;m everywhere.">I'm everywhere.</h1>
+            <p class="countdown" id="easterCountdown">Auto return in 10s</p>
+            <p>有些页面不适合停留太久。图像可能来自远方，也可能只是本地绘制出的残影。无论如何，它都会在十秒后把你送回首页。</p>
+            <div class="im-everywhere">I'm everywhere.</div>
+            <div class="actions">
+              <a class="link-glitch" data-label="Return now" href="#/home" data-route="#/home">Return now</a>
+              <a class="link-glitch" data-label="Back to index" href="#/home" data-route="#/home">Back to index</a>
+            </div>
+          </div>
+          <div class="panel easter-visual">
+            <div class="lain-frame">
+              <img id="lainImage" alt="Lain gif" src="https://fauux.neocities.org/images/lain.gif" crossorigin="anonymous">
+              <!-- If hotlinking is blocked, replace this canvas or swap in a local image. -->
+              <canvas id="lainFallback" width="240" height="240" hidden></canvas>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderSignalGrid() {
+      const chips = [
+        ["Status", "Listening"],
+        ["Noise", state.isTouch ? "Low" : "High"],
+        ["Route", currentRouteLabel()],
+        ["Storage", "Local"]
+      ];
+      dom.signalGrid.innerHTML = chips.map(([label, value]) => `
+        <span class="signal-chip">${escapeHtml(label)} <em>${escapeHtml(value)}</em></span>
+      `).join("");
+    }
+
+    function renderTagCloud() {
+      const tags = getAllTags();
+      dom.tagCloud.innerHTML = tags.map(([tag, count]) => `
+        <a href="#/home" data-tag="${escapeHtml(tag)}" class="tag-pill ${state.activeTag === tag ? "is-active" : ""}">
+          <span>${escapeHtml(tag)}</span><span>${count}</span>
+        </a>
+      `).join("");
+    }
+
+    function renderArchiveMini() {
+      const counts = POSTS.reduce((acc, post) => {
+        const key = monthKey(post.date);
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      dom.archiveMini.innerHTML = Object.entries(counts)
+        .sort((a, b) => b[0].localeCompare(a[0]))
+        .map(([month, count]) => `
+          <a href="#/archive" data-route="#/archive" class="archive-link link-glitch" data-label="${month}">
+            <span>${month}</span><span>${count}</span>
+          </a>
+        `).join("");
+    }
+
+    function updateDocumentTitle(route) {
+      const titles = {
+        "#/home": "Wired Diary",
+        "#/about": "Wired Diary // About",
+        "#/archive": "Wired Diary // Archive",
+        "#/easter": "Wired Diary // Wired"
+      };
+      if (route.startsWith("#/post/")) {
+        const post = POSTS.find((item) => item.id === route.split("/").pop());
+        document.title = post ? `Wired Diary // ${post.title}` : "Wired Diary // Missing Signal";
+        return;
+      }
+      document.title = titles[route] || "Wired Diary";
+    }
+
+    function setActiveNav(route) {
+      dom.navLinks.forEach((link) => {
+        const target = link.dataset.route;
+        const isActive =
+          (route === "#/home" && target === "#/home") ||
+          (route === "#/about" && target === "#/about") ||
+          (route === "#/archive" && target === "#/archive");
+        link.classList.toggle("active", isActive);
+      });
+    }
+
+    function renderRoute(route, options = {}) {
+      clearEasterTimer();
+      state.currentRoute = normalizeRoute(route);
+      updateDocumentTitle(state.currentRoute);
+      setActiveNav(state.currentRoute);
+      renderTagCloud();
+      renderArchiveMini();
+      renderSignalGrid();
+      dom.body.classList.toggle("route-easter", state.currentRoute === "#/easter");
+
+      let markup = "";
+      if (state.currentRoute === "#/home") {
+        markup = renderHome();
+      } else if (state.currentRoute === "#/about") {
+        markup = renderAbout();
+      } else if (state.currentRoute === "#/archive") {
+        markup = renderArchive();
+      } else if (state.currentRoute === "#/easter") {
+        markup = renderEaster();
+      } else if (state.currentRoute.startsWith("#/post/")) {
+        markup = renderPost(state.currentRoute.split("/").pop());
+      } else {
+        markup = renderHome();
+      }
+
+      dom.view.innerHTML = markup;
+      dom.view.classList.remove("route-enter");
+      if (options.animateIn) {
+        void dom.view.offsetWidth;
+        dom.view.classList.add("route-enter");
+      }
+
+      bindDynamicViewEvents();
+      triggerGlitchPulse();
+      if (state.currentRoute === "#/easter") {
+        setupEasterView();
+      }
+      if (state.currentRoute.startsWith("#/post/")) {
+        hydrateComments();
+      }
+      requestAnimationFrame(() => dom.view.focus({ preventScroll: true }));
+    }
+
+    function finalizeNavigation(route) {
+      renderRoute(route, { animateIn: true });
+      dom.appShell.classList.remove("page-exit");
+      dom.shroud.classList.remove("leave");
+      void dom.shroud.offsetWidth;
+      dom.shroud.classList.add("enter");
+      window.setTimeout(() => {
+        dom.shroud.classList.remove("enter");
+      }, 860);
+      state.pendingRoute = "";
+    }
+
+    function navigate(route) {
+      const normalized = normalizeRoute(route);
+      if (normalized === state.currentRoute && !state.pendingRoute) {
+        renderRoute(normalized, { animateIn: true });
+        return;
+      }
+      state.pendingRoute = normalized;
+      dom.appShell.classList.add("page-exit");
+      dom.shroud.classList.remove("enter");
+      void dom.shroud.offsetWidth;
+      dom.shroud.classList.add("leave");
+      window.setTimeout(() => {
+        if (location.hash !== normalized) {
+          location.hash = normalized;
+        } else {
+          finalizeNavigation(normalized);
+        }
+      }, 620);
+    }
+
+    function bindGlobalEvents() {
+      document.addEventListener("click", (event) => {
+        const anchor = event.target.closest("a[data-route]");
+        if (anchor && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+          event.preventDefault();
+          navigate(anchor.dataset.route);
+          return;
+        }
+
+        const tag = event.target.closest("[data-tag]");
+        if (tag) {
+          event.preventDefault();
+          state.activeTag = tag.dataset.tag;
+          if (state.currentRoute !== "#/home") {
+            navigate("#/home");
+          } else {
+            renderRoute("#/home", { animateIn: false });
+          }
+        }
+      });
+
+      window.addEventListener("hashchange", () => {
+        finalizeNavigation(normalizeRoute(location.hash));
+      });
+
+      dom.searchInput.addEventListener("input", () => {
+        state.searchTerm = dom.searchInput.value.trim();
+        renderTagCloud();
+        renderSignalGrid();
+        if (state.currentRoute === "#/home" || state.currentRoute === "#/archive") {
+          renderRoute(state.currentRoute, { animateIn: false });
+        }
+      });
+
+      dom.audioToggle.addEventListener("click", toggleAudio);
+      dom.clearFilterButton.addEventListener("click", () => {
+        state.activeTag = "";
+        state.searchTerm = "";
+        dom.searchInput.value = "";
+        renderRoute("#/home", { animateIn: false });
+      });
+      dom.easterGate.addEventListener("click", () => navigate("#/easter"));
+
+      document.addEventListener("keydown", (event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey) {
+          return;
+        }
+        if (event.key.toLowerCase() === "s") {
+          event.preventDefault();
+          dom.searchInput.focus();
+          dom.searchInput.select();
+        }
+        if (event.key.toLowerCase() === "l") {
+          event.preventDefault();
+          navigate("#/easter");
+        }
+      });
+
+      const pointerMove = (x, y) => {
+        state.pointer.x = x;
+        state.pointer.y = y;
+        state.pointer.active = true;
+        spawnTrail(x, y);
+      };
+
+      window.addEventListener("mousemove", (event) => {
+        pointerMove(event.clientX, event.clientY);
+      }, { passive: true });
+
+      window.addEventListener("touchmove", (event) => {
+        const touch = event.touches[0];
+        if (touch) {
+          pointerMove(touch.clientX, touch.clientY);
+        }
+      }, { passive: true });
+
+      window.addEventListener("click", (event) => {
+        spawnBurst(event.clientX, event.clientY);
+        ensureAudioResume();
+      });
+
+      window.addEventListener("touchstart", (event) => {
+        const touch = event.touches[0];
+        if (touch) {
+          spawnBurst(touch.clientX, touch.clientY);
+        }
+        ensureAudioResume();
+      }, { passive: true });
+
+      window.addEventListener("resize", handleResize);
+    }
+
+    function bindDynamicViewEvents() {
+      const commentForm = document.getElementById("commentForm");
+      if (commentForm) {
+        commentForm.addEventListener("submit", handleCommentSubmit);
+      }
+
+      const lainImage = document.getElementById("lainImage");
+      if (lainImage) {
+        lainImage.addEventListener("error", () => {
+          const fallback = document.getElementById("lainFallback");
+          if (!fallback) {
+            return;
+          }
+          lainImage.hidden = true;
+          fallback.hidden = false;
+          drawLainFallback(fallback);
+        }, { once: true });
+      }
+    }
+
+    function setupEasterView() {
+      const lainImage = document.getElementById("lainImage");
+      const fallback = document.getElementById("lainFallback");
+      if (lainImage && fallback) {
+        lainImage.addEventListener("load", () => {
+          fallback.hidden = true;
+          lainImage.hidden = false;
+        }, { once: true });
+      }
+
+      state.easterCountdown = 10;
+      updateEasterCountdown();
+      state.easterTimer = window.setInterval(() => {
+        state.easterCountdown -= 1;
+        updateEasterCountdown();
+        if (state.easterCountdown <= 0) {
+          navigate("#/home");
+        }
+      }, 1000);
+    }
+
+    function clearEasterTimer() {
+      if (state.easterTimer) {
+        clearInterval(state.easterTimer);
+        state.easterTimer = null;
+      }
+    }
+
+    function updateEasterCountdown() {
+      const label = document.getElementById("easterCountdown");
+      if (label) {
+        label.textContent = `Auto return in ${state.easterCountdown}s`;
+      }
+    }
+
+    function commentStore() {
+      try {
+        return JSON.parse(localStorage.getItem(COMMENT_STORAGE_KEY) || "{}");
+      } catch (error) {
+        return state.memoryComments;
+      }
+    }
+
+    function writeCommentStore(store) {
+      try {
+        localStorage.setItem(COMMENT_STORAGE_KEY, JSON.stringify(store));
+      } catch (error) {
+        state.memoryComments = store;
+      }
+    }
+
+    function hydrateComments() {
+      const postId = state.currentRoute.split("/").pop();
+      const list = document.getElementById("commentList");
+      if (!list) {
+        return;
+      }
+      const store = commentStore();
+      const comments = (store[postId] || []).slice().sort((a, b) => b.time - a.time);
+      list.innerHTML = comments.length ? comments.map((comment) => `
+        <article class="comment-card">
+          <header>
+            <strong>${escapeHtml(comment.name)}</strong>
+            <span>${formatDate(comment.time, {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit"
+            })}</span>
+          </header>
+          <p>${escapeHtml(comment.body)}</p>
+        </article>
+      `).join("") : `<p class="comment-empty">No local comments yet. Leave the first fragment.</p>`;
+    }
+
+    function handleCommentSubmit(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const postId = form.dataset.postId;
+      const nameInput = document.getElementById("commentName");
+      const bodyInput = document.getElementById("commentBody");
+      const name = nameInput.value.trim();
+      const body = bodyInput.value.trim();
+      if (!name || !body) {
+        return;
+      }
+
+      const store = commentStore();
+      const next = store[postId] || [];
+      next.push({
+        name,
+        body,
+        time: Date.now()
+      });
+      store[postId] = next;
+      writeCommentStore(store);
+      form.reset();
+      hydrateComments();
+      createGhostFragment("comment stored");
+    }
+
+    function triggerGlitchPulse() {
+      const targets = Array.from(document.querySelectorAll(".glitch-target"));
+      targets.forEach((target, index) => {
+        if (index === 0) {
+          target.classList.add("glitch-pulse");
+          window.setTimeout(() => target.classList.remove("glitch-pulse"), 460);
+        }
+      });
+    }
+
+    function randomGlitchLoop() {
+      const targets = Array.from(document.querySelectorAll(".glitch-target"));
+      if (!targets.length) {
+        return;
+      }
+      const target = targets[Math.floor(Math.random() * targets.length)];
+      target.classList.add("glitch-pulse");
+      window.setTimeout(() => target.classList.remove("glitch-pulse"), 420);
+    }
+
+    function createGhostFragment(text) {
+      const fragment = document.createElement("span");
+      fragment.className = "ghost-fragment";
+      fragment.textContent = text;
+      fragment.style.left = `${Math.random() * 78 + 8}%`;
+      fragment.style.top = `${Math.random() * 78 + 8}%`;
+      fragment.style.animationDelay = `${Math.random() * 0.5}s`;
+      dom.ghostFragments.appendChild(fragment);
+      window.setTimeout(() => fragment.remove(), 6100);
+    }
+
+    function ghostFragmentLoop() {
+      createGhostFragment(PHRASES[fragmentIndex % PHRASES.length]);
+      fragmentIndex += 1;
+    }
+
+    function updateClock() {
+      const now = new Date();
+      dom.wiredClock.textContent = `Wired sync ${new Intl.DateTimeFormat("zh-CN", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }).format(now)}`;
+    }
+
+    function updateFooterStatus() {
+      const states = [
+        "Connection: <em>stable</em>",
+        "Connection: <em>packet drift</em>",
+        "Connection: <em>ghost latency</em>",
+        "Connection: <em>soft reset</em>"
+      ];
+      footerStatusIndex = (footerStatusIndex + 1) % states.length;
+      dom.footerStatus.innerHTML = states[footerStatusIndex];
+    }
+
+    function initStreams() {
+      state.streams = Array.from({ length: state.isTouch ? 3 : 6 }, (_, index) => ({
+        y: window.innerHeight * (0.14 + index * 0.14),
+        amp: 18 + Math.random() * 28,
+        speed: 0.00018 + Math.random() * 0.00026,
+        phase: Math.random() * Math.PI * 2,
+        alpha: 0.06 + Math.random() * 0.04
+      }));
+    }
+
+    function handleResize() {
+      dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+      dom.canvas.width = Math.floor(window.innerWidth * dpr);
+      dom.canvas.height = Math.floor(window.innerHeight * dpr);
+      dom.canvas.style.width = `${window.innerWidth}px`;
+      dom.canvas.style.height = `${window.innerHeight}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      initStreams();
+    }
+
+    function constrainSpawn(x, y) {
+      const centerXMin = window.innerWidth * 0.3;
+      const centerXMax = window.innerWidth * 0.7;
+      const centerYMin = window.innerHeight * 0.2;
+      const centerYMax = window.innerHeight * 0.8;
+      if (x > centerXMin && x < centerXMax && y > centerYMin && y < centerYMax) {
+        const leftSide = x < window.innerWidth / 2;
+        return {
+          x: leftSide ? window.innerWidth * (0.08 + Math.random() * 0.14) : window.innerWidth * (0.78 + Math.random() * 0.12),
+          y: Math.min(window.innerHeight - 40, Math.max(40, y + (Math.random() - 0.5) * 90))
+        };
+      }
+      return { x, y };
+    }
+
+    function spawnTrail(x, y) {
+      const now = performance.now();
+      const throttle = state.isTouch ? 120 : (state.currentRoute === "#/easter" ? 70 : 36);
+      if (now - state.lastPointerAt < throttle) {
+        return;
+      }
+      state.lastPointerAt = now;
+
+      const point = constrainSpawn(x + (Math.random() - 0.5) * 18, y + (Math.random() - 0.5) * 18);
+      state.glyphs.push({
+        x: point.x,
+        y: point.y,
+        text: GLYPHS[Math.floor(Math.random() * GLYPHS.length)],
+        alpha: 0.2 + Math.random() * 0.2,
+        size: 12 + Math.random() * 6,
+        vx: (Math.random() - 0.5) * 10,
+        vy: -16 - Math.random() * 16,
+        life: 1,
+        ttl: 1400 + Math.random() * 400
+      });
+      state.glyphs = state.glyphs.slice(-(state.isTouch ? 5 : 12));
+
+      const moteCount = state.isTouch ? 1 : 2;
+      for (let index = 0; index < moteCount; index += 1) {
+        state.motes.push({
+          x: x + (Math.random() - 0.5) * 30,
+          y: y + (Math.random() - 0.5) * 30,
+          radius: 1 + Math.random() * 3,
+          alpha: 0.1 + Math.random() * 0.18,
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 0.5) * 14,
+          life: 1,
+          ttl: 500 + Math.random() * 600,
+          color: Math.random() > 0.5 ? "255,51,102" : "51,204,255"
+        });
+      }
+      state.motes = state.motes.slice(-(state.isTouch ? 9 : 28));
+    }
+
+    function spawnBurst(x, y) {
+      const count = state.isTouch ? 10 : 20;
+      for (let index = 0; index < count; index += 1) {
+        const edge = index % 4;
+        let startX = x;
+        let startY = y;
+        if (edge === 0) {
+          startX = Math.random() * window.innerWidth;
+          startY = -20;
+        } else if (edge === 1) {
+          startX = window.innerWidth + 20;
+          startY = Math.random() * window.innerHeight;
+        } else if (edge === 2) {
+          startX = Math.random() * window.innerWidth;
+          startY = window.innerHeight + 20;
+        } else {
+          startX = -20;
+          startY = Math.random() * window.innerHeight;
+        }
+        const targetX = x + (Math.random() - 0.5) * 140;
+        const targetY = y + (Math.random() - 0.5) * 140;
+        state.bursts.push({
+          x: startX,
+          y: startY,
+          vx: (targetX - startX) / 26,
+          vy: (targetY - startY) / 26,
+          alpha: 0.38 + Math.random() * 0.28,
+          size: 11 + Math.random() * 7,
+          text: BURST_WORDS[Math.floor(Math.random() * BURST_WORDS.length)],
+          color: ["255,51,102", "51,204,255", "0,204,136"][Math.floor(Math.random() * 3)],
+          life: 1,
+          ttl: 260 + Math.random() * 180
+        });
+      }
+      state.bursts = state.bursts.slice(-(state.isTouch ? 14 : 40));
+    }
+
+    function drawBackground(now) {
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      const hueShift = state.currentRoute === "#/easter" ? Math.sin(now * 0.00035) * 20 : 0;
+      const pointerGlow = ctx.createRadialGradient(
+        state.pointer.x,
+        state.pointer.y,
+        0,
+        state.pointer.x,
+        state.pointer.y,
+        state.currentRoute === "#/easter" ? 220 : 180
+      );
+      pointerGlow.addColorStop(0, `hsla(${190 + hueShift}, 90%, 60%, 0.08)`);
+      pointerGlow.addColorStop(0.5, `hsla(${340 + hueShift}, 80%, 58%, 0.04)`);
+      pointerGlow.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = pointerGlow;
+      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+      state.streams.forEach((stream, index) => {
+        ctx.beginPath();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = `rgba(${index % 2 === 0 ? "51,204,255" : "255,51,102"}, ${stream.alpha})`;
+        for (let x = -40; x <= window.innerWidth + 40; x += 40) {
+          const wave = Math.sin(now * stream.speed + x * 0.008 + stream.phase) * stream.amp;
+          const y = stream.y + wave + Math.cos(now * stream.speed * 0.6 + index) * 12;
+          if (x === -40) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+      });
+    }
+
+    function updateAndDrawParticles(delta) {
+      state.motes = state.motes.filter((mote) => {
+        mote.life -= delta / mote.ttl;
+        mote.x += mote.vx * delta * 0.015;
+        mote.y += mote.vy * delta * 0.015;
+        if (mote.life <= 0) {
+          return false;
+        }
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(${mote.color}, ${mote.alpha * mote.life})`;
+        ctx.shadowBlur = state.isTouch ? 0 : 12;
+        ctx.shadowColor = `rgba(${mote.color}, ${mote.alpha * 0.9 * mote.life})`;
+        ctx.arc(mote.x, mote.y, mote.radius, 0, Math.PI * 2);
+        ctx.fill();
+        return true;
+      });
+
+      state.glyphs = state.glyphs.filter((glyph) => {
+        glyph.life -= delta / glyph.ttl;
+        glyph.x += glyph.vx * delta * 0.01;
+        glyph.y += glyph.vy * delta * 0.01;
+        if (glyph.life <= 0) {
+          return false;
+        }
+        ctx.font = `${glyph.size}px "Fira Code", "Courier New", monospace`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = `rgba(255, 255, 255, ${glyph.alpha * glyph.life})`;
+        ctx.shadowBlur = state.isTouch ? 0 : 8;
+        ctx.shadowColor = "rgba(51, 204, 255, 0.16)";
+        ctx.fillText(glyph.text, glyph.x, glyph.y);
+        return true;
+      });
+
+      state.bursts = state.bursts.filter((burst) => {
+        burst.life -= delta / burst.ttl;
+        burst.x += burst.vx * delta * 0.04;
+        burst.y += burst.vy * delta * 0.04;
+        if (burst.life <= 0) {
+          return false;
+        }
+        ctx.font = `${burst.size}px "Fira Code", "Courier New", monospace`;
+        ctx.textAlign = "center";
+        ctx.fillStyle = `rgba(${burst.color}, ${burst.alpha * burst.life})`;
+        ctx.shadowBlur = state.isTouch ? 0 : 10;
+        ctx.shadowColor = `rgba(${burst.color}, ${burst.alpha * burst.life})`;
+        ctx.fillText(burst.text, burst.x, burst.y);
+        return true;
+      });
+
+      ctx.shadowBlur = 0;
+    }
+
+    function animationLoop(now) {
+      const delta = now - lastFrame;
+      lastFrame = now;
+      drawBackground(now);
+      updateAndDrawParticles(delta);
+      requestAnimationFrame(animationLoop);
+    }
+
+    function drawLainFallback(canvas) {
+      const fallbackCtx = canvas.getContext("2d");
+      const width = canvas.width;
+      const height = canvas.height;
+      fallbackCtx.clearRect(0, 0, width, height);
+
+      const bg = fallbackCtx.createLinearGradient(0, 0, 0, height);
+      bg.addColorStop(0, "#040506");
+      bg.addColorStop(1, "#0d1210");
+      fallbackCtx.fillStyle = bg;
+      fallbackCtx.fillRect(0, 0, width, height);
+
+      fallbackCtx.strokeStyle = "rgba(200,255,220,0.9)";
+      fallbackCtx.lineWidth = 4;
+      fallbackCtx.lineJoin = "round";
+      fallbackCtx.beginPath();
+      fallbackCtx.moveTo(70, 82);
+      fallbackCtx.lineTo(62, 118);
+      fallbackCtx.lineTo(68, 156);
+      fallbackCtx.lineTo(90, 192);
+      fallbackCtx.lineTo(120, 204);
+      fallbackCtx.lineTo(154, 194);
+      fallbackCtx.lineTo(174, 158);
+      fallbackCtx.lineTo(180, 122);
+      fallbackCtx.lineTo(172, 84);
+      fallbackCtx.lineTo(146, 58);
+      fallbackCtx.lineTo(104, 52);
+      fallbackCtx.lineTo(78, 66);
+      fallbackCtx.closePath();
+      fallbackCtx.stroke();
+
+      fallbackCtx.strokeStyle = "rgba(255,255,255,0.92)";
+      fallbackCtx.lineWidth = 3;
+      fallbackCtx.beginPath();
+      fallbackCtx.moveTo(95, 112);
+      fallbackCtx.lineTo(112, 118);
+      fallbackCtx.moveTo(130, 118);
+      fallbackCtx.lineTo(147, 112);
+      fallbackCtx.moveTo(98, 146);
+      fallbackCtx.quadraticCurveTo(120, 160, 142, 146);
+      fallbackCtx.stroke();
+
+      fallbackCtx.strokeStyle = "rgba(51,204,255,0.6)";
+      fallbackCtx.beginPath();
+      fallbackCtx.moveTo(122, 82);
+      fallbackCtx.lineTo(122, 178);
+      fallbackCtx.stroke();
+
+      fallbackCtx.strokeStyle = "rgba(255,51,102,0.64)";
+      fallbackCtx.beginPath();
+      fallbackCtx.moveTo(86, 82);
+      fallbackCtx.lineTo(58, 52);
+      fallbackCtx.moveTo(158, 82);
+      fallbackCtx.lineTo(188, 54);
+      fallbackCtx.stroke();
+
+      fallbackCtx.strokeStyle = "rgba(200,255,220,0.9)";
+      fallbackCtx.beginPath();
+      fallbackCtx.moveTo(98, 72);
+      fallbackCtx.lineTo(122, 88);
+      fallbackCtx.lineTo(146, 72);
+      fallbackCtx.stroke();
+
+      fallbackCtx.fillStyle = "rgba(0, 0, 0, 0.34)";
+      for (let y = 0; y < height; y += 4) {
+        fallbackCtx.fillRect(0, y, width, 1);
+      }
+    }
+
+    function initAudio() {
+      if (state.audio.ctx) {
+        return state.audio.ctx;
+      }
+      const AudioContextRef = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextRef) {
+        return null;
+      }
+
+      const audioCtx = new AudioContextRef();
+      const hum = audioCtx.createOscillator();
+      hum.type = "sawtooth";
+      hum.frequency.value = 46;
+
+      const overtone = audioCtx.createOscillator();
+      overtone.type = "triangle";
+      overtone.frequency.value = 92;
+
+      const wobble = audioCtx.createOscillator();
+      wobble.type = "sine";
+      wobble.frequency.value = 0.18;
+
+      const wobbleGain = audioCtx.createGain();
+      wobbleGain.gain.value = 0.012;
+
+      const humGain = audioCtx.createGain();
+      humGain.gain.value = 0.00001;
+
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.value = 580;
+      filter.Q.value = 0.3;
+
+      wobble.connect(wobbleGain);
+      wobbleGain.connect(humGain.gain);
+      hum.connect(filter);
+      overtone.connect(filter);
+      filter.connect(humGain);
+      humGain.connect(audioCtx.destination);
+
+      hum.start();
+      overtone.start();
+      wobble.start();
+
+      state.audio.ctx = audioCtx;
+      state.audio.gain = humGain;
+      state.audio.hum = hum;
+      state.audio.overtone = overtone;
+      state.audio.wobble = wobble;
+      return audioCtx;
+    }
+
+    async function toggleAudio() {
+      const audioCtx = initAudio();
+      if (!audioCtx) {
+        dom.audioToggle.textContent = "Hum // Unsupported";
+        dom.audioToggle.disabled = true;
+        return;
+      }
+      if (audioCtx.state === "suspended") {
+        await audioCtx.resume();
+      }
+      state.audio.active = !state.audio.active;
+      state.audio.gain.gain.cancelScheduledValues(audioCtx.currentTime);
+      state.audio.gain.gain.linearRampToValueAtTime(state.audio.active ? 0.026 : 0.00001, audioCtx.currentTime + 0.6);
+      dom.audioToggle.textContent = state.audio.active ? "Hum // On" : "Hum // Off";
+    }
+
+    function ensureAudioResume() {
+      if (state.audio.ctx && state.audio.active && state.audio.ctx.state === "suspended") {
+        state.audio.ctx.resume();
+      }
+    }
+
+    function init() {
+      handleResize();
+      bindGlobalEvents();
+      renderTagCloud();
+      renderArchiveMini();
+      renderSignalGrid();
+      updateClock();
+      updateFooterStatus();
+      if (!location.hash) {
+        location.hash = "#/home";
+      } else {
+        renderRoute(normalizeRoute(location.hash), { animateIn: true });
+      }
+      requestAnimationFrame(animationLoop);
+      window.setInterval(randomGlitchLoop, 3200);
+      window.setInterval(ghostFragmentLoop, 2300);
+      window.setInterval(updateClock, 1000);
+      window.setInterval(updateFooterStatus, 4600);
+      createGhostFragment("Present day, present time...");
+    }
+
+    init();
+  </script>
+</body>
+</html>
