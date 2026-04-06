@@ -1,0 +1,15 @@
+{
+  "name": "sakura-no-yume",
+  "version": "1.0.0",
+  "description": "樱花之梦 - 一款高质量视觉小说游戏",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8080 -c-1",
+    "dev": "npx live-server --port=8080"
+  },
+  "keywords": ["visual-novel", "galgame", "game"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}

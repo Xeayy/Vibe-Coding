@@ -1,0 +1,122 @@
+const CHARACTERS = {
+    sakura: {
+        id: 'sakura',
+        name: '樱井雪',
+        nameEn: 'Sakurai Yuki',
+        age: 17,
+        birthday: '4月5日',
+        bloodType: 'A型',
+        height: '158cm',
+        weight: '45kg',
+        personality: ['温柔', '善良', '有些害羞', '热爱文学'],
+        background: '主角的同班同学，文学部成员。喜欢在樱花树下读书，对主角有着特殊的感情。',
+        voiceActor: '暂无',
+        affinity: 0,
+        maxAffinity: 100,
+        expressions: {
+            normal: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20pink%20hair%2C%20school%20uniform%2C%20gentle%20expression%2C%20japanese%20style&image_size=square',
+            happy: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20pink%20hair%2C%20school%20uniform%2C%20happy%20smiling%20expression%2C%20japanese%20style&image_size=square',
+            sad: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20pink%20hair%2C%20school%20uniform%2C%20sad%20expression%2C%20tears%20in%20eyes%2C%20japanese%20style&image_size=square',
+            surprised: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20pink%20hair%2C%20school%20uniform%2C%20surprised%20expression%2C%20japanese%20style&image_size=square',
+            blushing: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20pink%20hair%2C%20school%20uniform%2C%20blushing%20embarrassed%20expression%2C%20japanese%20style&image_size=square',
+            angry: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20pink%20hair%2C%20school%20uniform%2C%20angry%20expression%2C%20japanese%20style&image_size=square'
+        },
+        currentExpression: 'normal'
+    },
+    misaki: {
+        id: 'misaki',
+        name: '美咲绫',
+        nameEn: 'Misaki Aya',
+        age: 17,
+        birthday: '7月23日',
+        bloodType: 'B型',
+        height: '165cm',
+        weight: '48kg',
+        personality: ['活泼', '外向', '运动神经发达', '喜欢开玩笑'],
+        background: '主角的青梅竹马，网球部王牌。性格开朗，总是能带动周围的气氛。',
+        voiceActor: '暂无',
+        affinity: 0,
+        maxAffinity: 100,
+        expressions: {
+            normal: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20blonde%20hair%2C%20sporty%20outfit%2C%20energetic%20expression%2C%20japanese%20style&image_size=square',
+            happy: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20blonde%20hair%2C%20sporty%20outfit%2C%20big%20smile%20happy%20expression%2C%20japanese%20style&image_size=square',
+            sad: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20blonde%20hair%2C%20sporty%20outfit%2C%20sad%20expression%2C%20japanese%20style&image_size=square',
+            surprised: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20blonde%20hair%2C%20sporty%20outfit%2C%20surprised%20expression%2C%20japanese%20style&image_size=square',
+            blushing: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20blonde%20hair%2C%20sporty%20outfit%2C%20blushing%20expression%2C%20japanese%20style&image_size=square',
+            angry: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20blonde%20hair%2C%20sporty%20outfit%2C%20angry%20expression%2C%20japanese%20style&image_size=square'
+        },
+        currentExpression: 'normal'
+    },
+    reina: {
+        id: 'reina',
+        name: '冰室玲奈',
+        nameEn: 'Himuro Reina',
+        age: 18,
+        birthday: '12月24日',
+        bloodType: 'AB型',
+        height: '168cm',
+        weight: '50kg',
+        personality: ['冷酷', '神秘', '智慧超群', '不轻易表露感情'],
+        background: '学生会会长，学业成绩年级第一。看似冷漠，实则内心深处有着不为人知的温柔。',
+        voiceActor: '暂无',
+        affinity: 0,
+        maxAffinity: 100,
+        expressions: {
+            normal: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20silver%20hair%2C%20elegant%20outfit%2C%20cold%20expression%2C%20japanese%20style&image_size=square',
+            happy: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20silver%20hair%2C%20elegant%20outfit%2C%20slight%20smile%20expression%2C%20japanese%20style&image_size=square',
+            sad: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20silver%20hair%2C%20elegant%20outfit%2C%20sad%20vulnerable%20expression%2C%20japanese%20style&image_size=square',
+            surprised: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20silver%20hair%2C%20elegant%20outfit%2C%20surprised%20expression%2C%20japanese%20style&image_size=square',
+            blushing: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20silver%20hair%2C%20elegant%20outfit%2C%20blushing%20embarrassed%20expression%2C%20japanese%20style&image_size=square',
+            angry: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20silver%20hair%2C%20elegant%20outfit%2C%20angry%20expression%2C%20japanese%20style&image_size=square'
+        },
+        currentExpression: 'normal'
+    },
+    yui: {
+        id: 'yui',
+        name: '星野唯',
+        nameEn: 'Hoshino Yui',
+        age: 16,
+        birthday: '2月14日',
+        bloodType: 'O型',
+        height: '152cm',
+        weight: '42kg',
+        personality: ['可爱', '天真烂漫', '喜欢唱歌', '对人友善'],
+        background: '一年级新生，音乐部成员。梦想成为偶像歌手，有着天使般的歌声。',
+        voiceActor: '暂无',
+        affinity: 0,
+        maxAffinity: 100,
+        expressions: {
+            normal: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20purple%20hair%2C%20idol%20outfit%2C%20cute%20expression%2C%20japanese%20style&image_size=square',
+            happy: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20purple%20hair%2C%20idol%20outfit%2C%20very%20happy%20excited%20expression%2C%20japanese%20style&image_size=square',
+            sad: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20purple%20hair%2C%20idol%20outfit%2C%20crying%20sad%20expression%2C%20japanese%20style&image_size=square',
+            surprised: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20purple%20hair%2C%20idol%20outfit%2C%20surprised%20expression%2C%20japanese%20style&image_size=square',
+            blushing: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20purple%20hair%2C%20idol%20outfit%2C%20blushing%20shy%20expression%2C%20japanese%20style&image_size=square',
+            angry: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20purple%20hair%2C%20idol%20outfit%2C%20pouting%20angry%20expression%2C%20japanese%20style&image_size=square'
+        },
+        currentExpression: 'normal'
+    },
+    shizuku: {
+        id: 'shizuku',
+        name: '月影雫',
+        nameEn: 'Tsukikage Shizuku',
+        age: 17,
+        birthday: '9月15日',
+        bloodType: 'A型',
+        height: '160cm',
+        weight: '46kg',
+        personality: ['安静', '神秘', '喜欢占卜', '观察力敏锐'],
+        background: '神秘的转学生，据说能看到别人看不到的东西。总是独来独往，但似乎对主角特别关注。',
+        voiceActor: '暂无',
+        affinity: 0,
+        maxAffinity: 100,
+        expressions: {
+            normal: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20black%20hair%2C%20gothic%20outfit%2C%20mysterious%20expression%2C%20japanese%20style&image_size=square',
+            happy: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20black%20hair%2C%20gothic%20outfit%2C%20slight%20mysterious%20smile%2C%20japanese%20style&image_size=square',
+            sad: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20black%20hair%2C%20gothic%20outfit%2C%20sad%20melancholy%20expression%2C%20japanese%20style&image_size=square',
+            surprised: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20black%20hair%2C%20gothic%20outfit%2C%20surprised%20expression%2C%20japanese%20style&image_size=square',
+            blushing: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20black%20hair%2C%20gothic%20outfit%2C%20blushing%20expression%2C%20japanese%20style&image_size=square',
+            angry: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=beautiful%20anime%20girl%20with%20black%20hair%2C%20gothic%20outfit%2C%20angry%20expression%2C%20japanese%20style&image_size=square'
+        },
+        currentExpression: 'normal'
+    }
+};

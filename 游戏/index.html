@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>樱花之梦 ~ Sakura no Yume</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container">
+        <div id="main-menu" class="screen active">
+            <div class="menu-background">
+                <div class="sakura-particles"></div>
+            </div>
+            <div class="menu-overlay">
+                <h1 class="game-title">樱花之梦</h1>
+                <p class="game-subtitle">Sakura no Yume</p>
+                <nav class="menu-buttons">
+                    <button class="menu-btn" id="btn-start">开始游戏</button>
+                    <button class="menu-btn" id="btn-load">读取存档</button>
+                    <button class="menu-btn" id="btn-config">游戏设置</button>
+                    <button class="menu-btn" id="btn-gallery">剧情回顾</button>
+                </nav>
+                <div class="menu-footer">
+                    <p>© 2026 樱花之梦制作组</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div id="scene-container">
+                <div id="background-layer"></div>
+                <div id="character-layer"></div>
+                <div id="effects-layer"></div>
+            </div>
+            
+            <div id="ui-layer">
+                <div id="text-box">
+                    <div id="speaker-name"></div>
+                    <div id="dialogue-text"></div>
+                    <div id="choice-container"></div>
+                </div>
+                
+                <div id="top-bar">
+                    <button class="ui-btn" id="btn-save" title="保存">💾</button>
+                    <button class="ui-btn" id="btn-load" title="读取">📂</button>
+                    <button class="ui-btn" id="btn-config" title="设置">⚙️</button>
+                    <button class="ui-btn" id="btn-skip" title="跳过">⏭️</button>
+                    <button class="ui-btn" id="btn-auto" title="自动">▶️</button>
+                    <button class="ui-btn" id="btn-hide" title="隐藏界面">👁️</button>
+                    <button class="ui-btn" id="btn-menu" title="返回菜单">🏠</button>
+                </div>
+                
+                <div id="affinity-display"></div>
+            </div>
+        </div>
+
+        <div id="save-load-screen" class="screen modal">
+            <div class="modal-content">
+                <h2>存档 / 读档</h2>
+                <div id="save-slots"></div>
+                <button class="menu-btn" id="btn-close-save">关闭</button>
+            </div>
+        </div>
+
+        <div id="config-screen" class="screen modal">
+            <div class="modal-content">
+                <h2>游戏设置</h2>
+                <div class="config-section">
+                    <h3>音量设置</h3>
+                    <div class="config-item">
+                        <label>背景音乐</label>
+                        <input type="range" id="bgm-volume" min="0" max="100" value="70">
+                        <span id="bgm-value">70%</span>
+                    </div>
+                    <div class="config-item">
+                        <label>音效</label>
+                        <input type="range" id="se-volume" min="0" max="100" value="80">
+                        <span id="se-value">80%</span>
+                    </div>
+                    <div class="config-item">
+                        <label>语音</label>
+                        <input type="range" id="voice-volume" min="0" max="100" value="100">
+                        <span id="voice-value">100%</span>
+                    </div>
+                </div>
+                <div class="config-section">
+                    <h3>文本设置</h3>
+                    <div class="config-item">
+                        <label>文本速度</label>
+                        <input type="range" id="text-speed" min="1" max="5" value="3">
+                        <span id="text-speed-value">中</span>
+                    </div>
+                    <div class="config-item">
+                        <label>自动模式间隔</label>
+                        <input type="range" id="auto-speed" min="1" max="5" value="3">
+                        <span id="auto-speed-value">中</span>
+                    </div>
+                </div>
+                <div class="config-section">
+                    <h3>显示设置</h3>
+                    <div class="config-item">
+                        <label>全屏模式</label>
+                        <button class="toggle-btn" id="btn-fullscreen">关</button>
+                    </div>
+                </div>
+                <button class="menu-btn" id="btn-close-config">关闭</button>
+            </div>
+        </div>
+
+        <div id="gallery-screen" class="screen modal">
+            <div class="modal-content">
+                <h2>剧情回顾</h2>
+                <div id="gallery-content"></div>
+                <button class="menu-btn" id="btn-close-gallery">关闭</button>
+            </div>
+        </div>
+
+        <div id="ending-screen" class="screen">
+            <div class="ending-content">
+                <h1 id="ending-title"></h1>
+                <p id="ending-text"></p>
+                <button class="menu-btn" id="btn-return-menu">返回主菜单</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/core/Game.js"></script>
+    <script src="js/core/SceneManager.js"></script>
+    <script src="js/core/DialogueSystem.js"></script>
+    <script src="js/core/CharacterManager.js"></script>
+    <script src="js/core/AffinitySystem.js"></script>
+    <script src="js/core/SaveSystem.js"></script>
+    <script src="js/core/AudioSystem.js"></script>
+    <script src="js/core/UIManager.js"></script>
+    <script src="js/data/Characters.js"></script>
+    <script src="js/data/Scenes.js"></script>
+    <script src="js/data/Story.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

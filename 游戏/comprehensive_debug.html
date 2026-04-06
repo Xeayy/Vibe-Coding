@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>樱花之梦 - 全面调试系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #0f0;
+            padding: 20px;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #ffb7c5;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #ffb7c5;
+        }
+        .panel {
+            background: rgba(20, 20, 30, 0.9);
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .panel-title {
+            color: #ffb7c5;
+            font-size: 16px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #333;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        button {
+            background: linear-gradient(135deg, #2d1b4e, #1a0a2e);
+            border: 1px solid #ffb7c5;
+            color: #ffb7c5;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-family: inherit;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #ffb7c5, #ff69b4);
+            color: #000;
+        }
+        button.success {
+            border-color: #0f0;
+            color: #0f0;
+        }
+        button.error {
+            border-color: #f00;
+            color: #f00;
+        }
+        .log-container {
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 10px;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .log-line {
+            margin: 2px 0;
+            padding: 2px 5px;
+        }
+        .log-info { color: #4dabf7; }
+        .log-success { color: #51cf66; }
+        .log-warning { color: #ffd43b; }
+        .log-error { color: #ff6b6b; }
+        .status-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .status-pass { background: #51cf66; color: #000; }
+        .status-fail { background: #ff6b6b; color: #fff; }
+        .status-warn { background: #ffd43b; color: #000; }
+        .variable-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .variable-table th, .variable-table td {
+            border: 1px solid #333;
+            padding: 6px;
+            text-align: left;
+        }
+        .variable-table th {
+            background: #2d1b4e;
+            color: #ffb7c5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🌸 樱花之梦 - 全面调试系统 🌸</h1>
+        
+        <div class="panel">
+            <div class="panel-title">📋 快速操作</div>
+            <button onclick="runFullCheck()">🚀 运行完整检查</button>
+            <button onclick="testGameStart()">▶️ 测试游戏启动</button>
+            <button onclick="clearLogs()">🗑️ 清空日志</button>
+            <button onclick="openGame()">🎮 打开游戏页面</button>
+        </div>
+        
+        <div class="grid">
+            <div class="panel">
+                <div class="panel-title">1️⃣ 文件加载检查</div>
+                <button onclick="checkFileLoad()">检查文件</button>
+                <div id="file-status"></div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-title">2️⃣ 数据完整性检查</div>
+                <button onclick="checkDataIntegrity()">检查数据</button>
+                <div id="data-status"></div>
+            </div>
+            
+            <div class="panel">
+                <div class="panel-title">3️⃣ 变量状态追踪</div>
+                <button onclick="trackVariables()">追踪变量</button>
+                <div id="variable-status"></div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-title">📊 系统日志</div>
+            <div class="log-container" id="log-container"></div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-title">🎯 测试结果汇总</div>
+            <div id="test-summary"></div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {
+            files: [],
+            data: [],
+            variables: [],
+            total: 0,
+            passed: 0,
+            failed: 0
+        };
+
+        function log(message, type = 'info') {
+            const container = document.getElementById('log-container');
+            const line = document.createElement('div');
+            line.className = `log-line log-${type}`;
+            const time = new Date().toLocaleTimeString();
+            line.textContent = `[${time}] ${message}`;
+            container.appendChild(line);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('log-container').innerHTML = '';
+            testResults = { files: [], data: [], variables: [], total: 0, passed: 0, failed: 0 };
+            log('日志已清空', 'info');
+        }
+
+        function addTestResult(category, name, passed, message = '') {
+            testResults.total++;
+            if (passed) {
+                testResults.passed++;
+                testResults[category].push({ name, passed: true, message });
+            } else {
+                testResults.failed++;
+                testResults[category].push({ name, passed: false, message });
+            }
+            updateTestSummary();
+        }
+
+        function updateTestSummary() {
+            const summary = document.getElementById('test-summary');
+            summary.innerHTML = `
+                <p>总测试数: <strong>${testResults.total}</strong></p>
+                <p>通过: <span style="color: #51cf66; font-weight: bold;">${testResults.passed}</span></p>
+                <p>失败: <span style="color: #ff6b6b; font-weight: bold;">${testResults.failed}</span></p>
+                <p>通过率: <strong>${testResults.total > 0 ? Math.round((testResults.passed / testResults.total) * 100) : 0}%</strong></p>
+            `;
+        }
+
+        function checkFileLoad() {
+            log('开始文件加载检查...', 'info');
+            const files = [
+                'css/style.css',
+                'js/core/Game.js',
+                'js/core/SceneManager.js',
+                'js/core/DialogueSystem.js',
+                'js/core/CharacterManager.js',
+                'js/core/AffinitySystem.js',
+                'js/core/SaveSystem.js',
+                'js/core/AudioSystem.js',
+                'js/core/UIManager.js',
+                'js/data/Characters.js',
+                'js/data/Scenes.js',
+                'js/data/Story.js',
+                'js/main.js'
+            ];
+            
+            let loadedCount = 0;
+            files.forEach((file, index) => {
+                fetch(file)
+                    .then(response => {
+                        if (response.ok) {
+                            log(`✓ ${file} 存在`, 'success');
+                            addTestResult('files', file, true);
+                            loadedCount++;
+                        } else {
+                            log(`✗ ${file} 不存在 (${response.status})`, 'error');
+                            addTestResult('files', file, false, `状态码: ${response.status}`);
+                        }
+                    })
+                    .catch(error => {
+                        log(`✗ ${file} 加载失败: ${error.message}`, 'error');
+                        addTestResult('files', file, false, error.message);
+                    });
+            });
+            
+            updateFileStatus();
+        }
+
+        function updateFileStatus() {
+            const status = document.getElementById('file-status');
+            status.innerHTML = '<p>文件检查完成，请查看日志</p>';
+        }
+
+        function checkDataIntegrity() {
+            log('开始数据完整性检查...', 'info');
+            
+            const test1 = typeof CHARACTERS !== 'undefined';
+            log(`CHARACTERS 定义: ${test1 ? '✓' : '✗'}`, test1 ? 'success' : 'error');
+            addTestResult('data', 'CHARACTERS 定义', test1, test1 ? '' : 'CHARACTERS 未定义');
+            
+            if (test1) {
+                const charCount = Object.keys(CHARACTERS).length;
+                log(`角色数量: ${charCount}`, charCount >= 5 ? 'success' : 'warning');
+                addTestResult('data', '角色数量', charCount >= 5, `应有5+，实际${charCount}`);
+                
+                Object.keys(CHARACTERS).forEach(charId => {
+                    const char = CHARACTERS[charId];
+                    const hasExpressions = char.expressions && Object.keys(char.expressions).length >= 5;
+                    addTestResult('data', `${char.name} 表情`, hasExpressions, hasExpressions ? '' : '表情不足5个');
+                });
+            }
+            
+            const test2 = typeof SCENES !== 'undefined';
+            log(`SCENES 定义: ${test2 ? '✓' : '✗'}`, test2 ? 'success' : 'error');
+            addTestResult('data', 'SCENES 定义', test2, test2 ? '' : 'SCENES 未定义');
+            
+            if (test2) {
+                const sceneCount = Object.keys(SCENES).length;
+                log(`场景数量: ${sceneCount}`, sceneCount >= 15 ? 'success' : 'warning');
+                addTestResult('data', '场景数量', sceneCount >= 15, `应有15+，实际${sceneCount}`);
+            }
+            
+            const test3 = typeof STORY !== 'undefined';
+            log(`STORY 定义: ${test3 ? '✓' : '✗'}`, test3 ? 'success' : 'error');
+            addTestResult('data', 'STORY 定义', test3, test3 ? '' : 'STORY 未定义');
+            
+            if (test3) {
+                const hasStart = STORY.start !== undefined;
+                log(`起始节点存在: ${hasStart ? '✓' : '✗'}`, hasStart ? 'success' : 'error');
+                addTestResult('data', '起始节点', hasStart, hasStart ? '' : '缺少 start 节点');
+                
+                if (hasStart) {
+                    const hasNext = STORY.start.next !== undefined;
+                    log(`起始节点有 next: ${hasNext ? '✓' : '✗'}`, hasNext ? 'success' : 'error');
+                    addTestResult('data', '起始节点 next', hasNext, hasNext ? '' : 'start 节点缺少 next');
+                }
+            }
+            
+            updateDataStatus();
+        }
+
+        function updateDataStatus() {
+            const status = document.getElementById('data-status');
+            status.innerHTML = '<p>数据检查完成，请查看日志</p>';
+        }
+
+        function trackVariables() {
+            log('开始变量状态追踪...', 'info');
+            
+            try {
+                let gameInstance;
+                try {
+                    gameInstance = new Game();
+                    log('✓ Game 实例创建成功', 'success');
+                    addTestResult('variables', 'Game 实例化', true);
+                } catch (e) {
+                    log(`✗ Game 实例化失败: ${e.message}`, 'error');
+                    addTestResult('variables', 'Game 实例化', false, e.message);
+                    return;
+                }
+                
+                const varData = [
+                    { name: 'game.state', value: gameInstance.state, expected: 'menu' },
+                    { name: 'game.config', value: typeof gameInstance.config, expected: 'object' },
+                    { name: 'game.currentStoryNode', value: gameInstance.currentStoryNode, expected: null }
+                ];
+                
+                let html = '<table class="variable-table"><tr><th>变量名</th><th>当前值</th><th>期望值</th><th>状态</th></tr>';
+                
+                varData.forEach(v => {
+                    const passed = typeof v.expected === 'string' 
+                        ? typeof v.value === v.expected 
+                        : v.value === v.expected;
+                    html += `<tr>
+                        <td>${v.name}</td>
+                        <td>${String(v.value)}</td>
+                        <td>${String(v.expected)}</td>
+                        <td><span class="status-badge ${passed ? 'status-pass' : 'status-fail'}">${passed ? 'PASS' : 'FAIL'}</span></td>
+                    </tr>`;
+                    addTestResult('variables', v.name, passed);
+                });
+                
+                html += '</table>';
+                document.getElementById('variable-status').innerHTML = html;
+                
+            } catch (e) {
+                log(`变量追踪错误: ${e.message}`, 'error');
+                addTestResult('variables', '变量追踪', false, e.message);
+            }
+        }
+
+        function testGameStart() {
+            log('========================================', 'info');
+            log('测试游戏启动流程...', 'info');
+            log('========================================', 'info');
+            
+            try {
+                if (typeof Game === 'undefined') {
+                    throw new Error('Game 类未定义');
+                }
+                
+                const testGame = new Game();
+                log('✓ Game 实例创建', 'success');
+                
+                if (typeof AudioSystem === 'undefined') {
+                    throw new Error('AudioSystem 未定义');
+                }
+                AudioSystem.init();
+                log('✓ AudioSystem 初始化', 'success');
+                
+                if (typeof UIManager === 'undefined') {
+                    throw new Error('UIManager 未定义');
+                }
+                UIManager.init();
+                log('✓ UIManager 初始化', 'success');
+                
+                log('========================================', 'success');
+                log('✓ 游戏启动测试通过！', 'success');
+                log('========================================', 'success');
+                
+            } catch (e) {
+                log('========================================', 'error');
+                log(`✗ 错误: ${e.message}`, 'error');
+                log(`堆栈: ${e.stack}`, 'error');
+                log('========================================', 'error');
+            }
+        }
+
+        function runFullCheck() {
+            log('========================================', 'info');
+            log('开始完整检查...', 'info');
+            log('========================================', 'info');
+            
+            clearLogs();
+            testResults = { files: [], data: [], variables: [], total: 0, passed: 0, failed: 0 };
+            
+            setTimeout(() => checkFileLoad(), 100);
+            setTimeout(() => checkDataIntegrity(), 500);
+            setTimeout(() => trackVariables(), 1000);
+            setTimeout(() => testGameStart(), 1500);
+        }
+
+        function openGame() {
+            window.open('index.html', '_blank');
+        }
+
+        log('调试系统加载完成', 'success');
+        log('点击"运行完整检查"开始', 'info');
+    </script>
+    
+    <!-- 游戏核心文件 -->
+    <script src="js/core/Game.js"></script>
+    <script src="js/core/SceneManager.js"></script>
+    <script src="js/core/DialogueSystem.js"></script>
+    <script src="js/core/CharacterManager.js"></script>
+    <script src="js/core/AffinitySystem.js"></script>
+    <script src="js/core/SaveSystem.js"></script>
+    <script src="js/core/AudioSystem.js"></script>
+    <script src="js/core/UIManager.js"></script>
+    <script src="js/data/Characters.js"></script>
+    <script src="js/data/Scenes.js"></script>
+    <script src="js/data/Story.js"></script>
+</body>
+</html>

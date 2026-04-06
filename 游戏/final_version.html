@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>樱花之梦 ~ Sakura no Yume</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
+            background: #000;
+            color: #fff;
+        }
+
+        #game-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 1;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* ==================== 主菜单屏幕 ==================== */
+        #main-menu {
+            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #main-menu.active {
+            display: flex;
+        }
+
+        .game-title {
+            font-size: 72px;
+            color: #ffb7c5;
+            text-shadow: 0 0 30px #ffb7c5, 0 0 60px #ff69b4;
+            margin-bottom: 10px;
+            letter-spacing: 8px;
+            font-weight: bold;
+        }
+
+        .game-subtitle {
+            font-size: 32px;
+            color: #b794f6;
+            margin-bottom: 60px;
+            letter-spacing: 4px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .menu-btn {
+            background: linear-gradient(135deg, rgba(255, 183, 197, 0.2), rgba(183, 148, 246, 0.2));
+            color: #ffb7c5;
+            border: 2px solid #ffb7c5;
+            padding: 18px 60px;
+            font-size: 22px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 280px;
+            letter-spacing: 2px;
+        }
+
+        .menu-btn:hover {
+            background: linear-gradient(135deg, #ffb7c5, #ff69b4);
+            color: #000;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
+        }
+
+        .menu-footer {
+            position: absolute;
+            bottom: 30px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 14px;
+        }
+
+        /* ==================== 游戏屏幕 ==================== */
+        #game-screen {
+            background: #000;
+        }
+
+        #game-screen.active {
+            display: block;
+        }
+
+        /* 场景背景 */
+        #background-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transition: background-image 1s ease-in-out;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* 不同场景的背景 */
+        .scene-school-gate {
+            background: linear-gradient(to bottom, 
+                #87CEEB 0%, 
+                #98D8C8 30%,
+                #90EE90 70%,
+                #228B22 100%);
+        }
+
+        .scene-classroom {
+            background: linear-gradient(to bottom,
+                #FFE4B5 0%,
+                #F5DEB3 40%,
+                #DEB887 100%);
+        }
+
+        .scene-rooftop {
+            background: linear-gradient(to bottom,
+                #87CEEB 0%,
+                #B0E0E6 50%,
+                #ADD8E6 100%);
+        }
+
+        .scene-sakura-park {
+            background: linear-gradient(135deg, 
+                #FFB7C5 0%, 
+                #FFC0CB 25%,
+                #FFB6C1 50%,
+                #FFA0B0 75%,
+                #FF8DA1 100%);
+        }
+
+        /* 角色层 */
+        #character-layer {
+            position: absolute;
+            bottom: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #character-layer.visible {
+            opacity: 1;
+        }
+
+        .character-sprite {
+            width: 350px;
+            height: 550px;
+            background: linear-gradient(135deg, #FFB7C5, #FF69B4);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            font-size: 18px;
+            color: white;
+            text-align: center;
+            padding-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
+        }
+
+        /* UI层 - 工具栏 */
+        #ui-toolbar {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 20;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-btn {
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid #ffb7c5;
+            color: #ffb7c5;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            backdrop-filter: blur(5px);
+        }
+
+        .toolbar-btn:hover {
+            background: rgba(255, 183, 197, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* 对话框UI */
+        #dialogue-ui {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.85) 80%, transparent);
+            padding: 25px 30px;
+            z-index: 10;
+        }
+
+        #text-box {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid #ffb7c5;
+            border-radius: 15px;
+            padding: 22px 28px;
+            min-height: 130px;
+            backdrop-filter: blur(10px);
+        }
+
+        #speaker-name {
+            font-size: 19px;
+            font-weight: bold;
+            color: #ffb7c5;
+            margin-bottom: 12px;
+            text-shadow: 0 0 10px rgba(255, 183, 197, 0.5);
+        }
+
+        #dialogue-text {
+            font-size: 17px;
+            line-height: 1.9;
+            color: #ffffff;
+        }
+
+        /* 选择选项UI */
+        #choices-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 30;
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #choices-container.visible {
+            display: flex;
+        }
+
+        .choice-btn {
+            background: linear-gradient(135deg, rgba(255, 183, 197, 0.25), rgba(183, 148, 246, 0.25));
+            border: 2px solid #ffb7c5;
+            color: #fff;
+            padding: 18px 35px;
+            font-size: 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 400px;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: linear-gradient(135deg, #ffb7c5, #ff69b4);
+            color: #000;
+            transform: scale(1.05);
+        }
+
+        /* 存档/设置界面 */
+        .modal-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-screen.visible {
+            display: flex;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #2d1b4e, #1a0a2e);
+            border: 2px solid #ffb7c5;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-title {
+            font-size: 32px;
+            color: #ffb7c5;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .save-slot {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #b794f6;
+            padding: 15px 20px;
+            margin: 10px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .save-slot:hover {
+            background: rgba(255, 183, 197, 0.2);
+            border-color: #ffb7c5;
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* 结局屏幕 */
+        #ending-screen {
+            background: linear-gradient(135deg, #1a0a2e 0%, #2d1b4e 50%, #1a0a2e 100%);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+        }
+
+        #ending-screen.active {
+            display: flex;
+        }
+
+        #ending-title {
+            font-size: 48px;
+            color: #ffb7c5;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #ffb7c5;
+        }
+
+        #ending-text {
+            font-size: 20px;
+            line-height: 1.8;
+            color: #b794f6;
+            margin-bottom: 50px;
+            max-width: 700px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- 主菜单屏幕 -->
+        <div id="main-menu" class="screen active">
+            <h1 class="game-title">樱花之梦</h1>
+            <p class="game-subtitle">Sakura no Yume</p>
+            <nav class="menu-buttons">
+                <button class="menu-btn" id="btn-start">开始游戏</button>
+                <button class="menu-btn" id="btn-load">读取存档</button>
+                <button class="menu-btn" id="btn-config">游戏设置</button>
+            </nav>
+            <div class="menu-footer">
+                <p>© 2026 樱花之梦制作组</p>
+            </div>
+        </div>
+
+        <!-- 游戏屏幕 -->
+        <div id="game-screen" class="screen">
+            <!-- 场景背景层 -->
+            <div id="background-layer"></div>
+            
+            <!-- 角色层 -->
+            <div id="character-layer">
+                <div class="character-sprite">角色立绘</div>
+            </div>
+
+            <!-- 工具栏 -->
+            <div id="ui-toolbar">
+                <button class="toolbar-btn" id="btn-save">💾 存档</button>
+                <button class="toolbar-btn" id="btn-load-game">📂 读档</button>
+                <button class="toolbar-btn" id="btn-config-game">⚙️ 设置</button>
+                <button class="toolbar-btn" id="btn-auto">⏩ 自动</button>
+                <button class="toolbar-btn" id="btn-skip">⏭️ 跳过</button>
+                <button class="toolbar-btn" id="btn-menu">🏠 菜单</button>
+            </div>
+
+            <!-- 选择选项容器 -->
+            <div id="choices-container"></div>
+
+            <!-- 对话框UI -->
+            <div id="dialogue-ui">
+                <div id="text-box">
+                    <div id="speaker-name"></div>
+                    <div id="dialogue-text"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 存档界面 -->
+        <div id="save-screen" class="modal-screen">
+            <button class="close-modal-btn" onclick="hideModal('save-screen')">✕ 关闭</button>
+            <div class="modal-content">
+                <h2 class="modal-title">💾 存档</h2>
+                <div id="save-slots"></div>
+            </div>
+        </div>
+
+        <!-- 读档界面 -->
+        <div id="load-screen" class="modal-screen">
+            <button class="close-modal-btn" onclick="hideModal('load-screen')">✕ 关闭</button>
+            <div class="modal-content">
+                <h2 class="modal-title">📂 读档</h2>
+                <div id="load-slots"></div>
+            </div>
+        </div>
+
+        <!-- 设置界面 -->
+        <div id="config-screen" class="modal-screen">
+            <button class="close-modal-btn" onclick="hideModal('config-screen')">✕ 关闭</button>
+            <div class="modal-content">
+                <h2 class="modal-title">⚙️ 游戏设置</h2>
+                <p style="color: #b794f6; text-align: center; margin-top: 20px;">
+                    文字速度、音量等设置<br>
+                    （功能开发中...）
+                </p>
+            </div>
+        </div>
+
+        <!-- 结局屏幕 -->
+        <div id="ending-screen" class="screen">
+            <h1 id="ending-title">序章结束</h1>
+            <p id="ending-text">感谢您体验《樱花之梦》序章！<br><br>在这个樱花飞舞的季节，新的故事即将开始。</p>
+            <button class="menu-btn" id="btn-return-menu">返回主菜单</button>
+        </div>
+    </div>
+
+    <script>
+        console.log('========================================');
+        console.log('🌸 樱花之梦 ~ 完整版 v2.0 🌸');
+        console.log('========================================');
+
+        // 游戏状态
+        const GameState = {
+            currentScreen: 'main-menu',
+            currentDialogueIndex: 0,
+            isAutoMode: false,
+            isSkipMode: false,
+            currentScene: null,
+            currentCharacter: null
+        };
+
+        // 场景配置
+        const Scenes = {
+            'school_gate': { name: '校门', class: 'scene-school-gate' },
+            'classroom': { name: '教室', class: 'scene-classroom' },
+            'rooftop': { name: '屋顶', class: 'scene-rooftop' },
+            'sakura_park': { name: '樱花公园', class: 'scene-sakura-park' }
+        };
+
+        // 完整对话数据
+        const Dialogues = [
+            { speaker: null, scene: 'school_gate', character: null, text: '春天，是一个充满希望的季节。' },
+            { speaker: null, scene: 'school_gate', character: null, text: '樱花纷飞的季节，也是新的故事开始的季节。' },
+            { speaker: null, scene: 'school_gate', character: null, text: '今天，是我转入这所学校的第一天。站在校门前，我深吸了一口气。' },
+            { speaker: null, scene: 'school_gate', character: null, text: '"新的环境，新的开始..." 我在心里默默对自己说。' },
+            { speaker: '???', scene: 'school_gate', character: 'yuki', text: '那个……你是新转来的同学吗？' },
+            { speaker: null, scene: 'school_gate', character: 'yuki', text: '突然，一个温柔的声音从身后传来。我转过身，看到了一位少女。' },
+            { speaker: '樱井雪', scene: 'school_gate', character: 'yuki', text: '啊，抱歉，突然搭话很奇怪吧……我是樱井雪，是这个班的学生。' },
+            { speaker: null, scene: 'school_gate', character: 'yuki', text: '眼前的少女有着粉色的头发，温柔的眼神中带着一丝害羞。' },
+            { speaker: null, scene: 'school_gate', character: 'yuki', text: '她就是我在这所学校认识的第一个人。' },
+            { speaker: '樱井雪', scene: 'school_gate', character: 'yuki', text: '如果你迷路的话，可以来找我哦！我在文学部活动室。' },
+            { speaker: null, scene: 'school_gate', character: null, text: '她微笑着说完，便转身离开了。' },
+            { speaker: null, scene: 'school_gate', character: null, text: '看着她离去的背影，我心里涌起一种奇妙的感觉……' },
+            { speaker: null, scene: 'classroom', character: null, text: '【场景切换：教室】' },
+            { speaker: null, scene: 'classroom', character: null, text: '走进教室，同学们的目光都集中到了我身上。' },
+            { speaker: null, scene: 'classroom', character: null, text: '"这就是转学生吧？看起来挺帅气的呢。"' },
+            { speaker: null, scene: 'classroom', character: null, text: '"听说是从东京来的？"' },
+            { speaker: null, scene: 'classroom', character: null, text: '各种窃窃私语传入耳中。我走到教室后排的空位坐下。' },
+            { speaker: '???', scene: 'classroom', character: null, text: '哟，新来的？' },
+            { speaker: null, scene: 'classroom', character: null, text: '旁边传来一个爽朗的声音。转头一看，是一位短发女生。' },
+            { speaker: '美咲绫', scene: 'classroom', character: null, text: '我是美咲绫！以后就是同桌了，请多指教啦！' },
+            { speaker: null, scene: 'classroom', character: null, text: '她的笑容如同阳光般灿烂，让人不由自主地放松下来。' },
+            { speaker: null, scene: 'rooftop', character: null, text: '【场景切换：屋顶】' },
+            { speaker: null, scene: 'rooftop', character: null, text: '午休时间，我独自来到屋顶。' },
+            { speaker: null, scene: 'rooftop', character: null, text: '微风吹拂，带来了春天的气息。远处的樱花树正在盛开。' },
+            { speaker: '???', scene: 'rooftop', character: null, text: '这里已经被占用了哦。' },
+            { speaker: null, scene: 'rooftop', character: null, text: '一个冰冷的声音响起。在角落里，坐着一位黑发少女。' },
+            { speaker: '冰室玲奈', scene: 'rooftop', character: null, text: '……不过，如果你想待在这里的话，我也不会阻止你。' },
+            { speaker: null, scene: 'rooftop', character: null, text: '她的眼神冷漠，却似乎藏着什么秘密……' },
+            { speaker: null, scene: 'sakura_park', character: null, text: '【场景切换：放学后的樱花公园】' },
+            { speaker: null, scene: 'sakura_park', character: null, text: '放学后，我不知不觉走到了附近的樱花公园。' },
+            { speaker: null, scene: 'sakura_park', character: null, text: '粉色的花瓣随风飘落，宛如一场梦幻的雨。' },
+            { speaker: '樱井雪', scene: 'sakura_park', character: 'yuki', text: '啊，你也在这里呀！' },
+            { speaker: null, scene: 'sakura_park', character: 'yuki', text: '熟悉的声音传来。是早上遇到的樱井同学。' },
+            { speaker: '樱井雪', scene: 'sakura_park', character: 'yuki', text: '这里的樱花很美吧？我最喜欢这个地方了。' },
+            { speaker: null, scene: 'sakura_park', character: 'yuki', text: '夕阳下，她的笑容比樱花还要美丽。' },
+            { speaker: '樱井雪', scene: 'sakura_park', character: 'yuki', text: '呐……明天，要不要一起去文学部看看？' },
+            { choices: [
+                { text: '好啊，我很感兴趣！', next: 'accept' },
+                { text: '让我考虑一下...', next: 'think' }
+            ] }
+        ];
+
+        // 屏幕切换函数
+        function showScreen(screenId) {
+            console.log('📺 切换到屏幕:', screenId);
+            
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+                GameState.currentScreen = screenId;
+                console.log('✅ 屏幕切换完成');
+            } else {
+                console.error('❌ 找不到屏幕:', screenId);
+            }
+        }
+
+        // 切换场景
+        function changeScene(sceneId) {
+            const bgLayer = document.getElementById('background-layer');
+            bgLayer.className = '';
+            
+            if (Scenes[sceneId]) {
+                bgLayer.classList.add(Scenes[sceneId].class);
+                GameState.currentScene = sceneId;
+                console.log('🎨 切换场景:', Scenes[sceneId].name);
+            }
+        }
+
+        // 显示/隐藏角色
+        function showCharacter(characterId) {
+            const charLayer = document.getElementById('character-layer');
+            if (characterId) {
+                charLayer.classList.add('visible');
+                GameState.currentCharacter = characterId;
+                console.log('👤 显示角色:', characterId);
+            } else {
+                charLayer.classList.remove('visible');
+                GameState.currentCharacter = null;
+            }
+        }
+
+        // 显示对话
+        function showDialogue(index) {
+            if (index >= Dialogues.length) {
+                showEnding();
+                return;
+            }
+
+            const dialogue = Dialogues[index];
+            
+            // 更新场景
+            if (dialogue.scene) {
+                changeScene(dialogue.scene);
+            }
+            
+            // 更新角色
+            showCharacter(dialogue.character);
+            
+            // 更新说话人
+            const speakerElement = document.getElementById('speaker-name');
+            if (dialogue.speaker) {
+                speakerElement.textContent = dialogue.speaker;
+                speakerElement.style.display = 'block';
+            } else {
+                speakerElement.style.display = 'none';
+            }
+            
+            // 检查是否有选择
+            if (dialogue.choices) {
+                showChoices(dialogue.choices);
+                return;
+            }
+            
+            // 打印文字
+            typeText(document.getElementById('dialogue-text'), dialogue.text, 0);
+        }
+
+        // 打字机效果
+        function typeText(element, text, index) {
+            if (index < text.length) {
+                element.innerHTML = text.substring(0, index + 1) + '<span style="animation: blink 1s infinite;">▋</span>';
+                
+                if (!GameState.isSkipMode) {
+                    setTimeout(() => typeText(element, text, index + 1), 30);
+                } else {
+                    typeText(element, text, text.length);
+                }
+            } else {
+                element.innerHTML = text;
+                
+                // 自动模式
+                if (GameState.isAutoMode) {
+                    setTimeout(() => continueGame(), 2000);
+                }
+            }
+        }
+
+        // 显示选择选项
+        function showChoices(choices) {
+            const container = document.getElementById('choices-container');
+            container.innerHTML = '';
+            
+            choices.forEach((choice, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'choice-btn';
+                btn.textContent = choice.text;
+                btn.onclick = () => handleChoice(choice.next);
+                container.appendChild(btn);
+            });
+            
+            container.classList.add('visible');
+        }
+
+        // 隐藏选择选项
+        function hideChoices() {
+            document.getElementById('choices-container').classList.remove('visible');
+        }
+
+        // 分支剧情 - 选择"积极回应"
+        const AcceptBranch = [
+            { speaker: '樱井雪', scene: 'sakura_park', character: 'yuki', text: '太好了！那明天放学后，我在文学部活动室等你！' },
+            { speaker: null, scene: 'sakura_park', character: 'yuki', text: '樱井雪的脸上露出了开心的笑容，眼睛里闪烁着期待的光芒。' },
+            { speaker: '樱井雪', scene: 'sakura_park', character: 'yuki', text: '文学部虽然人不多，但大家都很温柔哦。我想你一定会喜欢的！' },
+            { speaker: null, scene: 'sakura_park', character: 'yuki', text: '夕阳下，她的笑容比周围的樱花还要美丽。' },
+            { speaker: '樱井雪', scene: 'sakura_park', character: 'yuki', text: '那么，明天见啦！' },
+            { speaker: null, scene: 'sakura_park', character: 'yuki', text: '她挥了挥手，转身向校门口走去。' },
+            { speaker: null, scene: 'sakura_park', character: null, text: '看着她离去的背影，我心里涌起一股暖流。' },
+            { speaker: null, scene: 'sakura_park', character: null, text: '"新的学校……也许不会太坏吧。"' },
+            { speaker: null, scene: 'sakura_park', character: null, text: '樱花花瓣随风飘落，仿佛在预示着新的故事即将开始。' },
+            { speaker: null, scene: 'sakura_park', character: null, text: '【序章 完】' }
+        ];
+
+        // 分支剧情 - 选择"犹豫回应"
+        const ThinkBranch = [
+            { speaker: null, scene: 'sakura_park', character: 'yuki', text: '我犹豫了一下，没有立即回答。' },
+            { speaker: '樱井雪', scene: 'sakura_park', character: 'yuki', text: '没关系的，不用急着回答我。' },
+            { speaker: null, scene: 'sakura_park', character: 'yuki', text: '她似乎看出了我的犹豫，露出了理解的微笑。' },
+            { speaker: '樱井雪', scene: 'sakura_park', character: 'yuki', text: '文学部活动室随时欢迎你来参观。如果你感兴趣的话，随时都可以来找我哦！' },
+            { speaker: null, scene: 'sakura_park', character: 'yuki', text: '她的体贴让我感到一丝温暖。' },
+            { speaker: '樱井雪', scene: 'sakura_park', character: 'yuki', text: '那么，我先走了。明天见！' },
+            { speaker: null, scene: 'sakura_park', character: 'yuki', text: '目送她离开后，我独自站在樱花树下思考着。' },
+            { speaker: null, scene: 'sakura_park', character: null, text: '"文学部吗……"' },
+            { speaker: null, scene: 'sakura_park', character: null, text: '也许，尝试一下新的事物也不错。' },
+            { speaker: null, scene: 'sakura_park', character: null, text: '【序章 完】' }
+        ];
+
+        // 当前分支状态
+        let currentBranch = null;
+        let branchIndex = 0;
+
+        // 处理选择
+        function handleChoice(choiceNext) {
+            hideChoices();
+            console.log('🎯 选择了:', choiceNext);
+            
+            // 根据选择设置分支
+            if (choiceNext === 'accept') {
+                currentBranch = AcceptBranch;
+                console.log('💕 进入"积极回应"分支');
+            } else {
+                currentBranch = ThinkBranch;
+                console.log('🤔 进入"犹豫回应"分支');
+            }
+            
+            branchIndex = 0;
+            showBranchDialogue();
+        }
+
+        // 显示分支对话
+        function showBranchDialogue() {
+            if (!currentBranch || branchIndex >= currentBranch.length) {
+                showEnding();
+                return;
+            }
+
+            const dialogue = currentBranch[branchIndex];
+            
+            // 更新场景
+            if (dialogue.scene) {
+                changeScene(dialogue.scene);
+            }
+            
+            // 更新角色
+            showCharacter(dialogue.character);
+            
+            // 更新说话人
+            const speakerElement = document.getElementById('speaker-name');
+            if (dialogue.speaker) {
+                speakerElement.textContent = dialogue.speaker;
+                speakerElement.style.display = 'block';
+            } else {
+                speakerElement.style.display = 'none';
+            }
+            
+            // 打印文字
+            typeText(document.getElementById('dialogue-text'), dialogue.text, 0);
+        }
+
+        // 继续游戏（支持主线和分支）
+        function continueGame() {
+            if (GameState.currentScreen !== 'game-screen') return;
+            
+            // 如果在分支中
+            if (currentBranch) {
+                branchIndex++;
+                console.log('➡️ 继续分支对话:', branchIndex);
+                showBranchDialogue();
+            } else {
+                // 主线剧情
+                GameState.currentDialogueIndex++;
+                console.log('➡️ 继续主线对话:', GameState.currentDialogueIndex);
+                showDialogue(GameState.currentDialogueIndex);
+            }
+        }
+
+        // 显示结局
+        function showEnding() {
+            console.log('🏁 显示结局');
+            showScreen('ending-screen');
+        }
+
+        // 开始游戏
+        function startGame() {
+            console.log('🎮 游戏开始!');
+            GameState.currentDialogueIndex = 0;
+            GameState.isAutoMode = false;
+            GameState.isSkipMode = false;
+            
+            // 重置分支状态
+            currentBranch = null;
+            branchIndex = 0;
+            
+            showScreen('game-screen');
+            changeScene('school_gate');
+            showDialogue(0);
+        }
+
+        // 返回主菜单
+        function returnToMenu() {
+            console.log('🏠 返回主菜单');
+            if (confirm('确定要返回主菜单吗？（当前进度将丢失）')) {
+                showScreen('main-menu');
+            }
+        }
+
+        // 显示模态窗口
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('visible');
+        }
+
+        // 隐藏模态窗口
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('visible');
+        }
+
+        // 绑定事件
+        function bindEvents() {
+            // 主菜单按钮
+            document.getElementById('btn-start').addEventListener('click', startGame);
+            document.getElementById('btn-load').addEventListener('click', () => showModal('load-screen'));
+            document.getElementById('btn-config').addEventListener('click', () => showModal('config-screen'));
+            
+            // 工具栏按钮
+            document.getElementById('btn-save').addEventListener('click', () => {
+                alert('存档功能开发中...\n当前进度：对话 #' + GameState.currentDialogueIndex);
+            });
+            document.getElementById('btn-load-game').addEventListener('click', () => showModal('load-screen'));
+            document.getElementById('btn-config-game').addEventListener('click', () => showModal('config-screen'));
+            document.getElementById('btn-auto').addEventListener('click', () => {
+                GameState.isAutoMode = !GameState.isAutoMode;
+                console.log('⏩ 自动模式:', GameState.isAutoMode ? '开启' : '关闭');
+            });
+            document.getElementById('btn-skip').addEventListener('click', () => {
+                GameState.isSkipMode = !GameState.isSkipMode;
+                console.log('⏭️ 跳过模式:', GameState.isSkipMode ? '开启' : '关闭');
+            });
+            document.getElementById('btn-menu').addEventListener('click', returnToMenu);
+            
+            // 对话框点击
+            document.getElementById('text-box').addEventListener('click', continueGame);
+            
+            // 返回主菜单按钮
+            document.getElementById('btn-return-menu').addEventListener('click', returnToMenu);
+            
+            console.log('✅ 所有事件绑定完成');
+        }
+
+        // 初始化存档槽位
+        function initSaveSlots() {
+            const saveContainer = document.getElementById('save-slots');
+            const loadContainer = document.getElementById('load-slots');
+            
+            for (let i = 1; i <= 6; i++) {
+                // 存档槽
+                const saveSlot = document.createElement('div');
+                saveSlot.className = 'save-slot';
+                saveSlot.innerHTML = `<strong>存档 ${i}</strong><br><span style="color: #888;">空</span>`;
+                saveSlot.onclick = () => {
+                    localStorage.setItem('save_' + i, JSON.stringify({
+                        dialogueIndex: GameState.currentDialogueIndex,
+                        timestamp: new Date().toLocaleString()
+                    }));
+                    alert(`已保存到存档 ${i}`);
+                    hideModal('save-screen');
+                };
+                saveContainer.appendChild(saveSlot);
+                
+                // 读档槽
+                const loadSlot = document.createElement('div');
+                loadSlot.className = 'save-slot';
+                const savedData = localStorage.getItem('save_' + i);
+                if (savedData) {
+                    const data = JSON.parse(savedData);
+                    loadSlot.innerHTML = `<strong>存档 ${i}</strong><br><span style="color: #ffb7c5;">${data.timestamp}</span>`;
+                    loadSlot.onclick = () => {
+                        GameState.currentDialogueIndex = data.dialogueIndex;
+                        showScreen('game-screen');
+                        showDialogue(GameState.currentDialogueIndex);
+                        hideModal('load-screen');
+                    };
+                } else {
+                    loadSlot.innerHTML = `<strong>存档 ${i}</strong><br><span style="color: #888;">空</span>`;
+                }
+                loadContainer.appendChild(loadSlot);
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM 加载完成');
+            bindEvents();
+            initSaveSlots();
+            console.log('✅ 游戏初始化完成！');
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', (e) => {
+            if (GameState.currentScreen === 'game-screen') {
+                if (e.code === 'Space' || e.code === 'Enter') {
+                    continueGame();
+                } else if (e.code === 'Escape') {
+                    returnToMenu();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

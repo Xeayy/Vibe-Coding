@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>樱花之梦 - 修复版本</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #game-container {
+            width: 100%;
+            height: 100%;
+        }
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #main-menu {
+            background: #1a0a2e;
+        }
+        .game-title {
+            font-size: 48px;
+            color: #ffb7c5;
+            margin-bottom: 20px;
+        }
+        .menu-btn {
+            background: #ffb7c5;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        #game-screen {
+            background: #333;
+        }
+        #text-box {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            margin: 20px;
+            border: 1px solid #ffb7c5;
+        }
+        #ending-screen {
+            background: #1a0a2e;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="main-menu" class="screen active">
+            <h1 class="game-title">樱花之梦</h1>
+            <button class="menu-btn" id="btn-start">开始游戏</button>
+        </div>
+        <div id="game-screen" class="screen">
+            <div id="text-box">
+                <p>游戏测试中...</p>
+                <p>点击屏幕继续</p>
+            </div>
+        </div>
+        <div id="ending-screen" class="screen">
+            <h1>测试成功</h1>
+            <p>游戏基本结构正常运行</p>
+            <button class="menu-btn" id="btn-return-menu">返回主菜单</button>
+        </div>
+    </div>
+    <script>
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+        document.getElementById('btn-start').addEventListener('click', () => {
+            showScreen('game-screen');
+        });
+        document.getElementById('text-box').addEventListener('click', () => {
+            showScreen('ending-screen');
+        });
+        document.getElementById('btn-return-menu').addEventListener('click', () => {
+            showScreen('main-menu');
+        });
+    </script>
+</body>
+</html>

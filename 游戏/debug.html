@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #1a0a2e;
+            color: #fff;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #ffb7c5;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #000;
+        }
+        #console-log {
+            background: #000;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .log-line {
+            margin: 5px 0;
+        }
+        .log-error { color: #ff6b6b; }
+        .log-success { color: #51cf66; }
+        .log-info { color: #4dabf7; }
+    </style>
+</head>
+<body>
+    <h1>🔍 游戏调试页面</h1>
+    
+    <div class="test-section">
+        <h2>1. 文件加载测试</h2>
+        <button onclick="testFileLoad()">测试文件加载</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 数据检查</h2>
+        <button onclick="checkData()">检查数据</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 启动测试</h2>
+        <button onclick="testGameStart()">测试游戏启动</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>📋 调试日志</h2>
+        <div id="console-log"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('console-log');
+            const line = document.createElement('div');
+            line.className = 'log-line log-' + type;
+            line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + message;
+            logDiv.appendChild(line);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function testFileLoad() {
+            log('开始测试文件加载...', 'info');
+            
+            const files = [
+                'js/core/Game.js',
+                'js/core/SceneManager.js', 
+                'js/core/DialogueSystem.js',
+                'js/core/CharacterManager.js',
+                'js/core/AffinitySystem.js',
+                'js/core/SaveSystem.js',
+                'js/core/AudioSystem.js',
+                'js/core/UIManager.js',
+                'js/data/Characters.js',
+                'js/data/Scenes.js',
+                'js/data/Story.js',
+                'js/main.js'
+            ];
+            
+            let loadedCount = 0;
+            files.forEach((file, index) => {
+                const script = document.createElement('script');
+                script.src = file;
+                script.onload = () => {
+                    log('✓ ' + file + ' 加载成功', 'success');
+                    loadedCount++;
+                    if (loadedCount === files.length) {
+                        log('所有文件加载完成！', 'success');
+                    }
+                };
+                script.onerror = () => {
+                    log('✗ ' + file + ' 加载失败', 'error');
+                };
+                document.body.appendChild(script);
+            });
+        }
+
+        function checkData() {
+            log('检查数据...', 'info');
+            
+            try {
+                if (typeof CHARACTERS !== 'undefined') {
+                    log('✓ CHARACTERS 已定义，共 ' + Object.keys(CHARACTERS).length + ' 个角色', 'success');
+                    Object.keys(CHARACTERS).forEach(key => {
+                        log('  - ' + CHARACTERS[key].name, 'info');
+                    });
+                } else {
+                    log('✗ CHARACTERS 未定义', 'error');
+                }
+                
+                if (typeof SCENES !== 'undefined') {
+                    log('✓ SCENES 已定义，共 ' + Object.keys(SCENES).length + ' 个场景', 'success');
+                } else {
+                    log('✗ SCENES 未定义', 'error');
+                }
+                
+                if (typeof STORY !== 'undefined') {
+                    log('✓ STORY 已定义，共 ' + Object.keys(STORY).length + ' 个节点', 'success');
+                    log('  起始节点: ' + STORY.start?.next, 'info');
+                } else {
+                    log('✗ STORY 未定义', 'error');
+                }
+            } catch (e) {
+                log('检查数据时出错: ' + e.message, 'error');
+            }
+        }
+
+        function testGameStart() {
+            log('测试游戏启动...', 'info');
+            
+            try {
+                if (typeof Game !== 'undefined') {
+                    log('✓ Game 类已定义', 'success');
+                    
+                    if (typeof game === 'undefined') {
+                        log('创建 game 实例...', 'info');
+                        game = new Game();
+                        log('✓ game 实例创建成功', 'success');
+                    }
+                    
+                    if (typeof UIManager !== 'undefined' && typeof AudioSystem !== 'undefined') {
+                        AudioSystem.init();
+                        UIManager.init();
+                        log('✓ 系统初始化完成', 'success');
+                    }
+                    
+                    log('现在可以在浏览器中打开 index.html 测试游戏了！', 'success');
+                } else {
+                    log('✗ Game 类未定义', 'error');
+                }
+            } catch (e) {
+                log('测试游戏启动时出错: ' + e.message, 'error');
+                log('堆栈: ' + e.stack, 'error');
+            }
+        }
+        
+        log('调试页面已加载', 'info');
+        log('请先点击"测试文件加载"按钮', 'info');
+    </script>
+</body>
+</html>

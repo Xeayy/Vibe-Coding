@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>樱花之梦 - 基础测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #game-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .screen.active {
+            display: block;
+        }
+        #main-menu {
+            background: linear-gradient(135deg, #2d1b4e, #1a0a2e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .game-title {
+            font-size: 48px;
+            color: #ffb7c5;
+            text-shadow: 0 0 20px #ffb7c5;
+            margin-bottom: 20px;
+        }
+        .game-subtitle {
+            font-size: 24px;
+            color: #b794f6;
+            margin-bottom: 40px;
+        }
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .menu-btn {
+            background: linear-gradient(135deg, #ffb7c5, #ff69b4);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 200px;
+        }
+        .menu-btn:hover {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.5);
+        }
+        #game-screen {
+            background: #333;
+        }
+        #background-layer {
+            width: 100%;
+            height: 100%;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #fff;
+        }
+        #ui-layer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+        }
+        #text-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ffb7c5;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 120px;
+        }
+        #speaker-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffb7c5;
+            margin-bottom: 10px;
+        }
+        #dialogue-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #fff;
+        }
+        #top-bar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .ui-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #ffb7c5;
+            color: #ffb7c5;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .ui-btn:hover {
+            background: rgba(255, 183, 197, 0.3);
+        }
+        #ending-screen {
+            background: linear-gradient(135deg, #2d1b4e, #1a0a2e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+        }
+        #ending-title {
+            font-size: 36px;
+            color: #ffb7c5;
+            margin-bottom: 20px;
+        }
+        #ending-text {
+            font-size: 18px;
+            line-height: 1.5;
+            color: #b794f6;
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="main-menu" class="screen active">
+            <h1 class="game-title">樱花之梦</h1>
+            <p class="game-subtitle">Sakura no Yume</p>
+            <nav class="menu-buttons">
+                <button class="menu-btn" id="btn-start">开始游戏</button>
+            </nav>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div id="background-layer">
+                <div style="text-align: center;">
+                    <h2>测试场景</h2>
+                    <p>如果能看到这个页面，说明基本结构正常</p>
+                    <p>点击屏幕继续...</p>
+                </div>
+            </div>
+            <div id="ui-layer">
+                <div id="top-bar">
+                    <button class="ui-btn" id="btn-menu">返回菜单</button>
+                </div>
+                <div id="text-box">
+                    <div id="speaker-name"></div>
+                    <div id="dialogue-text">点击屏幕继续测试...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ending-screen" class="screen">
+            <h1 id="ending-title">测试成功</h1>
+            <p id="ending-text">基础测试成功！<br><br>游戏基本结构正常运行。</p>
+            <button class="menu-btn" id="btn-return-menu">返回主菜单</button>
+        </div>
+    </div>
+
+    <script>
+        console.log('====================================');
+        console.log('🌸 樱花之梦 ~ 基础测试 🌸');
+        console.log('====================================');
+
+        class Game {
+            constructor() {
+                this.state = 'menu';
+                this.currentStep = 0;
+                this.init();
+            }
+
+            init() {
+                console.log('游戏初始化完成');
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                document.getElementById('btn-start').addEventListener('click', () => {
+                    this.start();
+                });
+                document.getElementById('btn-menu').addEventListener('click', () => {
+                    this.returnToMenu();
+                });
+                document.getElementById('btn-return-menu').addEventListener('click', () => {
+                    this.returnToMenu();
+                });
+                document.getElementById('text-box').addEventListener('click', () => {
+                    this.continue();
+                });
+            }
+
+            start() {
+                console.log('🎮 游戏开始!');
+                this.state = 'playing';
+                this.currentStep = 0;
+                this.showScreen('game-screen');
+                console.log('测试开始...');
+            }
+
+            continue() {
+                this.currentStep++;
+                console.log('继续到步骤:', this.currentStep);
+                
+                if (this.currentStep >= 2) {
+                    this.showEnding();
+                } else {
+                    const dialogueElement = document.getElementById('dialogue-text');
+                    dialogueElement.textContent = `测试步骤 ${this.currentStep + 1}：点击屏幕继续...`;
+                }
+            }
+
+            showEnding() {
+                this.state = 'ending';
+                this.showScreen('ending-screen');
+            }
+
+            showScreen(screenId) {
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                document.getElementById(screenId).classList.add('active');
+                console.log('✅ 切换到屏幕:', screenId);
+            }
+
+            returnToMenu() {
+                this.state = 'menu';
+                this.currentStep = 0;
+                this.showScreen('main-menu');
+            }
+        }
+
+        let game;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM 加载完成');
+            game = new Game();
+            console.log('✅ 游戏准备就绪！');
+        });
+    </script>
+</body>
+</html>

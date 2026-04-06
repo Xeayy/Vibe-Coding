@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>樱花之梦 - 简化测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #000;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #game-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .screen.active {
+            display: block;
+        }
+        #main-menu {
+            background: linear-gradient(135deg, #2d1b4e, #1a0a2e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .game-title {
+            font-size: 48px;
+            color: #ffb7c5;
+            text-shadow: 0 0 20px #ffb7c5;
+            margin-bottom: 20px;
+        }
+        .game-subtitle {
+            font-size: 24px;
+            color: #b794f6;
+            margin-bottom: 40px;
+        }
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .menu-btn {
+            background: linear-gradient(135deg, #ffb7c5, #ff69b4);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 200px;
+        }
+        .menu-btn:hover {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.5);
+        }
+        #game-screen {
+            background: #333;
+        }
+        #background-layer {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: opacity 0.5s;
+        }
+        #ui-layer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+        }
+        #text-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #ffb7c5;
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 120px;
+        }
+        #speaker-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffb7c5;
+            margin-bottom: 10px;
+        }
+        #dialogue-text {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #fff;
+        }
+        #top-bar {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .ui-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid #ffb7c5;
+            color: #ffb7c5;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .ui-btn:hover {
+            background: rgba(255, 183, 197, 0.3);
+        }
+        #ending-screen {
+            background: linear-gradient(135deg, #2d1b4e, #1a0a2e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+        }
+        #ending-title {
+            font-size: 36px;
+            color: #ffb7c5;
+            margin-bottom: 20px;
+        }
+        #ending-text {
+            font-size: 18px;
+            line-height: 1.5;
+            color: #b794f6;
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="main-menu" class="screen active">
+            <h1 class="game-title">樱花之梦</h1>
+            <p class="game-subtitle">Sakura no Yume</p>
+            <nav class="menu-buttons">
+                <button class="menu-btn" id="btn-start">开始游戏</button>
+            </nav>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div id="background-layer"></div>
+            <div id="ui-layer">
+                <div id="top-bar">
+                    <button class="ui-btn" id="btn-menu">返回菜单</button>
+                </div>
+                <div id="text-box">
+                    <div id="speaker-name"></div>
+                    <div id="dialogue-text"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="ending-screen" class="screen">
+            <h1 id="ending-title"></h1>
+            <p id="ending-text"></p>
+            <button class="menu-btn" id="btn-return-menu">返回主菜单</button>
+        </div>
+    </div>
+
+    <script>
+        console.log('====================================');
+        console.log('🌸 樱花之梦 ~ 简化测试版 🌸');
+        console.log('====================================');
+
+        const SCENES = {
+            school_gate: {
+                id: 'school_gate',
+                name: '学校校门',
+                background: 'https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=japanese%20school%20gate%20entrance%2C%20cherry%20blossom%20trees%2C%20anime%20style%2C%20daytime&image_size=landscape_16_9'
+            }
+        };
+
+        const STORY = {
+            start: {
+                id: 'start',
+                next: 'prologue_1'
+            },
+            prologue_1: {
+                id: 'prologue_1',
+                scene: 'school_gate',
+                dialogue: {
+                    speaker: null,
+                    text: '春天，是一个充满希望的季节。\n樱花纷飞的季节，也是新的故事开始的季节。',
+                    expression: null
+                },
+                next: 'prologue_2'
+            },
+            prologue_2: {
+                id: 'prologue_2',
+                dialogue: {
+                    speaker: null,
+                    text: '今天，是我转入这所学校的第一天。\n站在校门前，我深吸了一口气。',
+                    expression: null
+                },
+                next: 'ending'
+            },
+            ending: {
+                id: 'ending',
+                ending: {
+                    title: '测试结束',
+                    text: '测试成功！游戏逻辑正常运行。\n\n你应该看到了：\n1. 学校校门的背景\n2. 对话文本\n3. 顶部的返回菜单按钮'
+                }
+            }
+        };
+
+        class Game {
+            constructor() {
+                this.state = 'menu';
+                this.currentStoryNode = null;
+                this.isTyping = false;
+                this.init();
+            }
+
+            init() {
+                console.log('游戏初始化完成');
+                this.bindEvents();
+            }
+
+            bindEvents() {
+                document.getElementById('btn-start').addEventListener('click', () => {
+                    this.start();
+                });
+                document.getElementById('btn-menu').addEventListener('click', () => {
+                    this.returnToMenu();
+                });
+                document.getElementById('btn-return-menu').addEventListener('click', () => {
+                    this.returnToMenu();
+                });
+                document.getElementById('text-box').addEventListener('click', () => {
+                    this.continue();
+                });
+            }
+
+            start() {
+                console.log('🎮 游戏开始!');
+                this.state = 'playing';
+                this.currentStoryNode = 'start';
+                this.showScreen('game-screen');
+                console.log('开始执行故事...');
+                this.nextStory();
+            }
+
+            nextStory() {
+                console.log('📖 nextStory 被调用, 当前节点:', this.currentStoryNode);
+
+                if (!this.currentStoryNode) {
+                    console.error('❌ 没有当前故事节点!');
+                    return;
+                }
+
+                const node = STORY[this.currentStoryNode];
+                if (!node) {
+                    console.error('❌ 找不到故事节点:', this.currentStoryNode);
+                    return;
+                }
+
+                console.log('✅ 处理节点:', node.id);
+
+                if (node.ending) {
+                    console.log('🎬 显示结局');
+                    this.showEnding(node.ending);
+                    return;
+                }
+
+                if (node.scene) {
+                    console.log('🖼️ 切换场景:', node.scene);
+                    this.changeScene(node.scene);
+                }
+
+                if (node.dialogue) {
+                    console.log('💬 显示对话');
+                    this.showDialogue(node.dialogue);
+                    return;
+                }
+
+                if (node.next) {
+                    console.log('➡️ 移动到下一个节点:', node.next);
+                    this.currentStoryNode = node.next;
+                    this.nextStory();
+                }
+            }
+
+            showDialogue(dialogue) {
+                const speakerElement = document.getElementById('speaker-name');
+                const dialogueElement = document.getElementById('dialogue-text');
+
+                if (dialogue.speaker) {
+                    speakerElement.textContent = dialogue.speaker;
+                    speakerElement.style.display = 'block';
+                } else {
+                    speakerElement.style.display = 'none';
+                }
+
+                dialogueElement.innerHTML = '';
+                this.isTyping = true;
+
+                let displayIndex = 0;
+                const text = dialogue.text;
+
+                const typingInterval = setInterval(() => {
+                    if (displayIndex < text.length) {
+                        const char = text[displayIndex];
+                        displayIndex++;
+
+                        let displayText = text.substring(0, displayIndex);
+                        displayText = displayText.replace(/\n/g, '<br>');
+
+                        dialogueElement.innerHTML = displayText + '<span style="animation: blink 1s infinite;">▋</span>';
+                    } else {
+                        clearInterval(typingInterval);
+                        dialogueElement.innerHTML = text.replace(/\n/g, '<br>');
+                        this.isTyping = false;
+                    }
+                }, 50);
+            }
+
+            continue() {
+                if (this.isTyping) {
+                    const dialogueElement = document.getElementById('dialogue-text');
+                    const currentNode = STORY[this.currentStoryNode];
+                    if (currentNode && currentNode.dialogue) {
+                        dialogueElement.innerHTML = currentNode.dialogue.text.replace(/\n/g, '<br>');
+                        this.isTyping = false;
+                    }
+                    return;
+                }
+
+                if (this.currentStoryNode) {
+                    const currentNode = STORY[this.currentStoryNode];
+                    if (currentNode && currentNode.next) {
+                        console.log('🔄 从 continue() 移动到:', currentNode.next);
+                        this.currentStoryNode = currentNode.next;
+                        this.nextStory();
+                    }
+                }
+            }
+
+            changeScene(sceneId) {
+                const scene = SCENES[sceneId];
+                if (!scene) {
+                    console.error('❌ 找不到场景:', sceneId);
+                    return;
+                }
+
+                const bgLayer = document.getElementById('background-layer');
+                if (bgLayer) {
+                    bgLayer.style.opacity = '0';
+                    
+                    setTimeout(() => {
+                        bgLayer.style.backgroundImage = `url('${scene.background}')`;
+                        bgLayer.style.opacity = '1';
+                        console.log('✅ 场景背景已设置');
+                    }, 250);
+                }
+            }
+
+            showEnding(ending) {
+                this.state = 'ending';
+                
+                document.getElementById('ending-title').textContent = ending.title;
+                document.getElementById('ending-text').textContent = ending.text;
+                
+                this.showScreen('ending-screen');
+            }
+
+            showScreen(screenId) {
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                document.getElementById(screenId).classList.add('active');
+                console.log('✅ 切换到屏幕:', screenId);
+            }
+
+            returnToMenu() {
+                this.state = 'menu';
+                this.currentStoryNode = null;
+                this.showScreen('main-menu');
+            }
+        }
+
+        let game;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM 加载完成');
+            game = new Game();
+            console.log('✅ 游戏准备就绪！');
+        });
+    </script>
+</body>
+</html>
