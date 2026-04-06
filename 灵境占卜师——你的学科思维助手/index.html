@@ -1,0 +1,54 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>灵境占卜师 | 学科思维助手</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="starfield" aria-hidden="true"></canvas>
+  <div class="page-shell">
+    <header class="site-header glass">
+      <div class="brand-wrap">
+        <div class="avatar" aria-hidden="true">🐱</div>
+        <div>
+          <h1>灵境占卜师</h1>
+          <p>学科占卜师 + 对话Agent</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="chat-layout glass">
+      <section id="chatHistory" class="chat-history" aria-live="polite"></section>
+      <form id="chatForm" class="chat-input-row" autocomplete="off">
+        <label for="chatInput" class="sr-only">输入你的问题</label>
+        <input id="chatInput" type="text" maxlength="180" placeholder="说出你的困惑（学业、生活、情感）..." required>
+        <button id="sendBtn" type="submit">发送</button>
+        <button id="randomBtn" type="button">🎲 随机占卜</button>
+        <button id="clearBtn" type="button" class="danger-btn">🗑️ 清空</button>
+      </form>
+    </main>
+
+    <footer class="site-footer glass">
+      <h2>学科导航</h2>
+      <nav>
+        <ul class="nav-list">
+          <li><a href="math.html">数学</a></li>
+          <li><a href="physics.html">物理</a></li>
+          <li><a href="cs.html">计算机</a></li>
+          <li><a href="design.html">设计</a></li>
+          <li><a href="language.html">语言学</a></li>
+          <li><a href="psychology.html">心理学</a></li>
+          <li><a href="biology.html">生物学</a></li>
+        </ul>
+      </nav>
+      <div class="about-slot">
+        <a href="about.html">关于本站</a>
+      </div>
+      <p class="campus-note">校园文化角落：把每一次困惑，转成一次跨学科的思考练习。</p>
+    </footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
