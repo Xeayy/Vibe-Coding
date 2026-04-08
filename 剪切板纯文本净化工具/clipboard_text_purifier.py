@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Clipboard Plain Text Purifier for Windows 10/11
-- Single-file app
-- Tray background mode
-- Smart / Extreme purification modes
-- Global hotkeys via pynput
-- Autostart via Startup folder
+剪贴板纯文本净化工具 (Clipboard Plain Text Purifier)
+
+功能特性:
+- 单文件Python应用，无需额外配置
+- 系统托盘后台运行，不占用任务栏
+- 双净化模式：智能保留 vs 极致纯净
+- 全局热键控制 (Ctrl+Alt+V/B/X)
+- 开机自启支持
+- 自动依赖安装
+- 完善的异常处理和用户提示
+
+作者: AI Assistant
+版本: 1.0
+兼容: Windows 10/11
 """
 
 import ctypes
@@ -15,6 +23,38 @@ import sys
 import time
 import winreg
 from ctypes import wintypes
+
+
+def ensure_dependencies():
+    """自动检查并安装缺失的依赖"""
+    try:
+        import pynput
+        return True
+    except ImportError:
+        print("检测到缺失依赖 pynput，正在自动安装...")
+        try:
+            import subprocess
+            print("正在安装，请稍候...")
+            result = subprocess.run([sys.executable, "-m", "pip", "install", "pynput", "--quiet", "--disable-pip-version-check"], 
+                                  capture_output=True, text=True, timeout=DEPENDENCY_INSTALL_TIMEOUT)
+            if result.returncode == 0:
+                print("依赖安装成功！")
+                try:
+                    import pynput
+                    return True
+                except ImportError:
+                    print("安装完成后仍无法导入 pynput，请检查Python环境。")
+                    return False
+            else:
+                print(f"依赖安装失败: {result.stderr.strip()}")
+                return False
+        except subprocess.TimeoutExpired:
+            print("依赖安装超时，请检查网络连接后重试。")
+            return False
+        except Exception as e:
+            print(f"自动安装依赖时出错: {e}")
+            print("请手动运行: pip install pynput")
+            return False
 
 
 # -----------------------------
@@ -68,6 +108,19 @@ CF_UNICODETEXT = 13
 GMEM_MOVEABLE = 0x0002
 GMEM_ZEROINIT = 0x0040
 
+
+# -----------------------------
+# Application constants
+# -----------------------------
+APP_NAME = "剪贴板纯文本净化工具"
+SETTINGS_KEY = r"Software\ClipboardTextPurifier"
+STARTUP_FILE_NAME = "ClipboardTextPurifier_Autostart.cmd"
+LOG_MAX_LINES = 250
+CLIPBOARD_IGNORE_DURATION = 0.35
+CLIPBOARD_SIGNATURE_TIMEOUT = 0.2
+DEPENDENCY_INSTALL_TIMEOUT = 60
+CLIPBOARD_RETRY_COUNT = 20
+CLIPBOARD_RETRY_DELAY_MS = 20
 
 # menu IDs
 ID_MENU_STATUS = 1001
@@ -248,39 +301,51 @@ WNDPROC = _wndproc_factory()
 
 
 class ClipboardPurifierApp:
+    """剪贴板纯文本净化工具主类"""
+    
     def __init__(self):
+        """初始化应用状态和配置"""
         self.hinstance = kernel32.GetModuleHandleW(None)
         self.main_class_name = "ClipboardPurifierMainWindow"
         self.log_class_name = "ClipboardPurifierLogWindow"
 
+        # 窗口句柄
         self.main_hwnd = None
         self.log_hwnd = None
         self.log_edit_hwnd = None
 
+        # 系统托盘
         self.hicon = user32.LoadIconW(None, _make_int_resource(IDI_APPLICATION))
         self.tray_uid = 1
 
+        # 应用状态
         self.enabled = True
         self.mode = MODE_SMART
         self.autostart = False
-
         self.running = True
+
+        # 热键监听器
         self.hotkey_listener = None
 
+        # 剪贴板格式
         self._fmt_rtf = user32.RegisterClipboardFormatW("Rich Text Format")
         self._fmt_html = user32.RegisterClipboardFormatW("HTML Format")
 
+        # 防循环机制
         self._ignore_clipboard_until = 0.0
         self._last_written_signature = ""
         self._last_seen_signature = ""
         self._last_seen_time = 0.0
 
+        # 日志系统
         self._logs = []
-        self._max_logs = 250
+        self._max_logs = LOG_MAX_LINES
 
-        self.settings_key = r"Software\ClipboardTextPurifier"
-        self.startup_file_name = "ClipboardTextPurifier_Autostart.cmd"
+        # 配置持久化
+        self.settings_key = SETTINGS_KEY
+        self.startup_file_name = STARTUP_FILE_NAME
 
+        # 加载设置
         self._load_settings()
         self.autostart = self._is_autostart_enabled()
 
@@ -300,10 +365,11 @@ class ClipboardPurifierApp:
     # logging and notifications
     # -----------------------------
     def log(self, message):
+        """添加日志消息，支持自动轮转"""
         line = f"[{time.strftime('%H:%M:%S')}] {message}"
         self._logs.append(line)
         if len(self._logs) > self._max_logs:
-            self._logs = self._logs[-self._max_logs :]
+            self._logs = self._logs[-self._max_logs:]
 
         print(line)
         self._refresh_log_window()
@@ -407,7 +473,7 @@ class ClipboardPurifierApp:
     # -----------------------------
     # clipboard safe operations
     # -----------------------------
-    def _open_clipboard_safe(self, retry=20, delay_ms=20):
+    def _open_clipboard_safe(self, retry=CLIPBOARD_RETRY_COUNT, delay_ms=CLIPBOARD_RETRY_DELAY_MS):
         for _ in range(retry):
             if user32.OpenClipboard(None):
                 return True
@@ -507,7 +573,7 @@ class ClipboardPurifierApp:
         finally:
             user32.CloseClipboard()
 
-        self._ignore_clipboard_until = time.monotonic() + 0.35
+        self._ignore_clipboard_until = time.monotonic() + CLIPBOARD_IGNORE_DURATION
         self._last_written_signature = ""
         self._last_seen_signature = ""
         self.log("已清空剪贴板")
@@ -520,23 +586,28 @@ class ClipboardPurifierApp:
     # -----------------------------
     @staticmethod
     def sanitize_extreme(text):
-        if text is None:
+        """极致纯净模式：清理格式，合并空行"""
+        if not text:
             return ""
 
+        # 统一换行符
         t = text.replace("\r\n", "\n").replace("\r", "\n")
+        # 制表符转空格
         t = t.replace("\t", " ")
 
+        # 处理行，清理首尾空格，合并连续空行
         lines = [line.strip() for line in t.split("\n")]
-        out = []
+        result = []
         prev_blank = False
+        
         for line in lines:
-            blank = (line == "")
-            if blank and prev_blank:
-                continue
-            out.append(line)
-            prev_blank = blank
+            is_blank = not line
+            if not (is_blank and prev_blank):
+                result.append(line)
+            prev_blank = is_blank
 
-        return "\n".join(out).strip().replace("\n", "\r\n")
+        # 重新格式化为Windows换行
+        return "\r\n".join(result).strip()
 
     def process_clipboard_update(self):
         try:
@@ -555,7 +626,7 @@ class ClipboardPurifierApp:
                 return
 
             source_sig = hashlib.sha256(text.encode("utf-8", errors="surrogatepass")).hexdigest()
-            if source_sig == self._last_seen_signature and (now - self._last_seen_time) < 0.2:
+            if source_sig == self._last_seen_signature and (now - self._last_seen_time) < CLIPBOARD_SIGNATURE_TIMEOUT:
                 return
             self._last_seen_signature = source_sig
             self._last_seen_time = now
@@ -578,7 +649,7 @@ class ClipboardPurifierApp:
                 return
 
             self._last_written_signature = write_sig
-            self._ignore_clipboard_until = time.monotonic() + 0.35
+            self._ignore_clipboard_until = time.monotonic() + CLIPBOARD_IGNORE_DURATION
 
             if self.mode == MODE_SMART:
                 self.log("已自动净化：仅清除富文本格式，文字内容保持不变")
@@ -661,7 +732,7 @@ class ClipboardPurifierApp:
             from pynput import keyboard
         except Exception:
             self.hotkey_listener = None
-            self.friendly_error("全局快捷键未启用：缺少依赖 pynput。")
+            self.friendly_error("全局快捷键初始化失败，请重启后重试。")
             return
 
         def post_action(action_id):
@@ -936,13 +1007,21 @@ class ClipboardPurifierApp:
 
 
 def main():
-    app = ClipboardPurifierApp()
+    """主函数：检查依赖并启动应用"""
+    if not ensure_dependencies():
+        print("依赖检查失败，程序无法启动。")
+        input("按回车键退出...")
+        return
+    
     try:
+        app = ClipboardPurifierApp()
         app.start()
-    except Exception:
-        # top-level fallback: no stack trace popup for users
+    except KeyboardInterrupt:
+        print("收到中断信号，正在退出...")
+    except Exception as e:
+        print(f"程序运行时出错: {e}")
         try:
-            user32.MessageBoxW(None, "程序启动失败，请重新运行。", "剪贴板纯文本净化工具", 0x00000010)
+            user32.MessageBoxW(None, f"程序运行出错: {str(e)[:200]}", APP_NAME, 0x00000010)
         except Exception:
             pass
 
