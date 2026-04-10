@@ -1,0 +1,15 @@
+{
+  "auto_process": true,
+  "mode": "mosaic",
+  "mosaic_size": 8,
+  "bar_color": [
+    0,
+    0,
+    0
+  ],
+  "bar_height_ratio": 0.35,
+  "custom_patterns": {},
+  "auto_start": false,
+  "last_image_hash": null,
+  "version": "2.0"
+}
