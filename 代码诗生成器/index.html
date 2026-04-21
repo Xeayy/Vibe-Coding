@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>代码诗生成器 · Code Poem Generator</title>
+  <style>
+    :root {
+      --bg: #1e1e1e;
+      --panel: #252526;
+      --panel-2: #2d2d30;
+      --text: #d4d4d4;
+      --muted: #9da3ad;
+      --accent: #4fc1ff;
+      --accent-2: #c586c0;
+      --green: #4ec9b0;
+      --yellow: #dcdcaa;
+      --danger: #f48771;
+      --line: #3c3c3c;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      --radius: 14px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 15% 10%, #2a2a40 0%, var(--bg) 45%);
+      color: var(--text);
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: min(1160px, 94vw);
+      margin: 28px auto 40px;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 20px;
+    }
+
+    .main-card,
+    .side-card {
+      background: linear-gradient(145deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .main-card {
+      padding: 22px;
+    }
+
+    .side-card {
+      padding: 18px;
+      align-self: start;
+      position: sticky;
+      top: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2.8vw, 2rem);
+      color: #ffffff;
+      letter-spacing: 0.4px;
+    }
+
+    .subtitle {
+      margin: 8px 0 20px;
+      color: var(--muted);
+      font-size: 0.96rem;
+      line-height: 1.5;
+    }
+
+    .style-switcher {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .style-btn {
+      border: 1px solid #4a4a4a;
+      background: #2b2b2b;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+    }
+
+    .style-btn:hover {
+      border-color: var(--accent);
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .style-btn.active {
+      background: rgba(79, 193, 255, 0.16);
+      border-color: var(--accent);
+      color: #e8f7ff;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: transform 0.18s ease, opacity 0.18s ease, filter 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+    }
+
+    .btn-generate {
+      background: linear-gradient(120deg, var(--accent), #6294ff);
+      color: #071019;
+    }
+
+    .btn-copy {
+      background: #3a3a3a;
+      color: #f3f3f3;
+      border: 1px solid #5d5d5d;
+    }
+
+    .poem-wrap {
+      background: #1b1b1b;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px;
+      min-height: 220px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      line-height: 1.65;
+      font-size: clamp(0.95rem, 1.8vw, 1.05rem);
+      font-family: Consolas, "Fira Code", "JetBrains Mono", monospace;
+      color: #dcdcaa;
+    }
+
+    .kw { color: var(--accent); }
+    .fn { color: var(--green); }
+    .str { color: #ce9178; }
+    .cm { color: #6a9955; }
+    .err { color: var(--danger); }
+    .num { color: #b5cea8; }
+    .sym { color: var(--accent-2); }
+
+    .fade-in {
+      animation: fadeInUp 420ms ease;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .status {
+      min-height: 22px;
+      margin: 10px 2px 2px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .egg {
+      margin-top: 18px;
+      padding-top: 12px;
+      border-top: 1px dashed #454545;
+      color: var(--yellow);
+      font-size: 0.95rem;
+    }
+
+    .side-title {
+      margin: 0 0 10px;
+      color: #f2f2f2;
+      font-size: 1rem;
+    }
+
+    details summary {
+      cursor: pointer;
+      color: var(--accent);
+      margin-bottom: 10px;
+      user-select: none;
+    }
+
+    .recent-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+      max-height: 62vh;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .recent-item {
+      border: 1px solid #434343;
+      border-radius: 10px;
+      padding: 10px;
+      background: #222;
+    }
+
+    .recent-meta {
+      color: var(--muted);
+      font-size: 0.8rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .recent-poem {
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: Consolas, "Fira Code", monospace;
+      font-size: 0.84rem;
+      color: #d7d7d7;
+      line-height: 1.45;
+      max-height: 165px;
+      overflow: auto;
+    }
+
+    .empty-tip {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .records-actions {
+      margin-bottom: 10px;
+    }
+
+    .btn-small {
+      border: 1px solid #5d5d5d;
+      background: #343434;
+      color: #f3f3f3;
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    .btn-small:hover {
+      border-color: var(--accent);
+    }
+
+    .btn-danger {
+      border-color: #7b4b4b;
+      color: #ffd9d4;
+      background: #3b2424;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .side-card {
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <main class="main-card">
+      <h1>代码诗生成器 · Code Poem Generator</h1>
+      <p class="subtitle">把语法写成情书，把异常写成月光。点击一次，生成一首程序员专属诗。</p>
+
+      <div class="style-switcher" id="styleSwitcher">
+        <button class="style-btn active" data-style="python" type="button">Python 风格</button>
+        <button class="style-btn" data-style="javascript" type="button">JavaScript 风格</button>
+        <button class="style-btn" data-style="c" type="button">C 风格</button>
+        <button class="style-btn" data-style="java" type="button">Java 风格</button>
+        <button class="style-btn" data-style="go" type="button">Go 风格</button>
+        <button class="style-btn" data-style="rust" type="button">Rust 风格</button>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-generate" id="generateBtn" type="button">生成新诗</button>
+        <button class="btn btn-copy" id="copyBtn" type="button">复制整首诗</button>
+      </div>
+
+      <section class="poem-wrap">
+        <pre id="poemContent" aria-live="polite"></pre>
+      </section>
+      <div class="status" id="statusText"></div>
+      <div class="egg" id="eggText"></div>
+    </main>
+
+    <aside class="side-card">
+      <h2 class="side-title">本地记录</h2>
+      <details open>
+        <summary>最近诗作（最多 20 首）</summary>
+        <div class="records-actions">
+          <button class="btn-small btn-danger" id="clearRecentBtn" type="button">清空记录</button>
+        </div>
+        <ul class="recent-list" id="recentList"></ul>
+        <p class="empty-tip" id="emptyTip">还没有记录，先生成一首吧。</p>
+      </details>
+    </aside>
+  </div>
+
+  <script>
+    // 词库与模板：使用占位符填充，按风格生成 3~8 行代码诗
+    const words = {
+      noun: ["心跳", "晚风", "雨夜", "咖啡", "回忆", "键盘声", "星光", "地铁站", "耳机", "晨雾"],
+      verb: ["拥抱", "等待", "追问", "收藏", "重启", "编译", "修复", "点亮", "解包", "回放"],
+      emotion: ["想念", "勇敢", "迟疑", "温柔", "孤独", "偏爱", "心动", "失眠", "释然", "执念"],
+      error: ["尴尬", "沉默", "误会", "超时", "心碎", "权限不足", "网络波动", "空指针"],
+      object: ["你", "我", "我们", "昨日", "春天", "明天", "晚安", "秘密", "答案", "笑容"],
+      place: ["天台", "走廊", "车窗", "夜市", "海边", "工位", "操场", "楼梯口"],
+      file: ["心声.txt", "想你.log", "勇气.json", "回忆.md", "月光.conf", "答案.yaml"],
+      signal: ["💘", "✨", "🌙", "🫧", "🚀", "🧠"],
+      adjective: ["安静", "滚烫", "漫长", "清澈", "迟到", "明亮", "笨拙", "柔软"],
+      time: ["凌晨两点", "通勤路上", "发布前夜", "周五傍晚", "雨停之后", "日出之前"],
+      weather: ["小雨", "晚霞", "大风", "薄雾", "晴空", "雷阵雨"],
+      techAction: ["merge", "rebase", "review", "deploy", "refactor", "commit"],
+      branch: ["main", "dev", "hotfix/love", "feature/心动", "release/今晚"]
+    };
+
+    const templates = {
+      python: [
+        `try:
+    {verb}({object})
+except {error}:
+    pass
+finally:
+    print("{emotion}")`,
+        `def {verb}你():
+    for 第{noun} in range(3):
+        print("把{emotion}写进{place}")
+    return "{object}"`,
+        `class {noun}:
+    def __init__(self):
+        self.状态 = "{emotion}"
+    def run(self):
+        return "{verb}{object}"`,
+        `import time
+while {emotion}:
+    print("{object}")
+    time.sleep(1)
+    break`,
+        `from 生活 import 明天
+if "{object}" in "{noun}":
+    print("继续{verb}")
+else:
+    raise Exception("{error}")`
+      ],
+      javascript: [
+        `const {noun} = () => "{emotion}";
+async function {verb}{object}() {
+  await Promise.resolve("{place}");
+  console.log({noun}());
+}`,
+        `function 回忆({object}) {
+  return new Promise(resolve => {
+    setTimeout(() => resolve("{emotion}"), 1000);
+  });
+}
+回忆("{object}").then(v => console.log(v));`,
+        `const 状态 = "{emotion}";
+for (let i = 0; i < 3; i++) {
+  console.log("第" + i + "次{verb}{object}");
+}
+if (!状态) throw new Error("{error}");`,
+        `class {noun} {
+  constructor() { this.mode = "{emotion}"; }
+  run = () => console.log("{verb}{object}");
+}
+new {noun}().run();`,
+        `import { 心动 } from "今晚";
+const result = await 心动?.("{object}") ?? "{error}";
+console.log(result, "{signal}");`
+      ],
+      c: [
+        `#include <stdio.h>
+int main(void) {
+    printf("把{emotion}写给{object}\\n");
+    return 0;
+}`,
+        `#include <stdlib.h>
+int main(void) {
+    char* mood = "{emotion}";
+    if (!mood[0]) {
+        fprintf(stderr, "{error}\\n");
+        return 1;
+    }
+    puts("{verb}{object}");
+}`,
+        `typedef struct {
+    const char* place;
+    const char* state;
+} {noun};
+int main(void) {
+    {noun} me = {"{place}", "{emotion}"};
+    printf("%s -> %s\\n", me.place, me.state);
+}`,
+        `#include <stdio.h>
+void callback(const char* msg) { printf("%s\\n", msg); }
+int main(void) {
+    for (int i = 0; i < 3; ++i) callback("{verb}{object}");
+    return 0;
+}`
+      ],
+      java: [
+        `public class {noun} {
+  public static void main(String[] args) {
+    try {
+      System.out.println("把{emotion}写给{object}");
+    } catch (Exception e) {
+      System.out.println("{error}");
+    }
+  }
+}`,
+        `import java.util.*;
+class 回忆 {
+  String mood = "{emotion}";
+  void run() {
+    for (int i = 0; i < 3; i++) {
+      System.out.println("第" + i + "次{verb}{object}");
+    }
+  }
+}`,
+        `record 心事(String who, String mood) {}
+var msg = new 心事("{object}", "{emotion}");
+if (msg.mood().isBlank()) {
+  throw new RuntimeException("{error}");
+}
+System.out.println(msg);`
+      ],
+      go: [
+        `package main
+import "fmt"
+func main() {
+    for i := 0; i < 3; i++ {
+        fmt.Println("第", i, "次{verb}{object}")
+    }
+}`,
+        `package main
+import "errors"
+func 想你() error {
+    if "{emotion}" == "" {
+        return errors.New("{error}")
+    }
+    return nil
+}`,
+        `type {noun} struct{ mood string }
+func (n {noun}) run() {
+    fmt.Println("{verb}{object}", n.mood)
+}
+func main() { {noun}{mood: "{emotion}"}.run() }`
+      ],
+      rust: [
+        `fn main() {
+    let mood = "{emotion}";
+    if mood.is_empty() {
+        panic!("{error}");
+    }
+    println!("{verb}{object}");
+}`,
+        `struct {noun} {
+    mood: &'static str,
+}
+impl {noun} {
+    fn run(&self) {
+        println!("{} {}", self.mood, "{object}");
+    }
+}`,
+        `async fn tonight() -> Result<&'static str, &'static str> {
+    let answer = "{object}";
+    if answer.is_empty() { return Err("{error}"); }
+    Ok("{signal}")
+}`
+      ]
+    };
+
+    // 额外短句片段：和主模板拼接，提升每次生成的变化度
+    const addOns = {
+      python: [
+        `# {time} 的 {weather}，适合 {verb}{object}`,
+        `with open("{file}", "a", encoding="utf-8") as f:\n    f.write("{emotion}\\n")`,
+        `assert "{object}" != "", "{error}"`,
+        `lambda x: f"{adjective}{noun}-{signal}"`,
+        `print("git {techAction} {branch}")`
+      ],
+      javascript: [
+        `// {time}：把 {emotion} 打包进 {file}`,
+        `const memo = ["{noun}", "{place}", "{signal}"].join(" / ");`,
+        `queueMicrotask(() => console.log("{adjective}{emotion}"));`,
+        `console.info("git {techAction} {branch}");`,
+        `const fallback = "{error}" ?? "一切正常";`
+      ],
+      c: [
+        `/* {time} {weather}，变量名叫 {noun} */`,
+        `printf("git {techAction} {branch}\\n");`,
+        `const char* memo = "{adjective}{emotion}";`,
+        `if (printf("{signal}\\n") < 0) return 2;`,
+        `char file[] = "{file}";`
+      ],
+      java: [
+        `// {time}，把 {emotion} 推送到 {branch}`,
+        `String note = "{adjective}{noun}";`,
+        `System.out.println("git {techAction} {branch}");`,
+        `Optional<String> mood = Optional.of("{emotion}");`,
+        `var file = "{file}";`
+      ],
+      go: [
+        `// {time} 的 {weather}`,
+        `fmt.Println("git", "{techAction}", "{branch}")`,
+        `memo := "{adjective}{emotion}"`,
+        `if len("{object}") == 0 { panic("{error}") }`,
+        `_ = "{file}"`
+      ],
+      rust: [
+        `// {time}：{weather} 与 {emotion}`,
+        `let memo = format!("{}-{}", "{adjective}", "{noun}");`,
+        `println!("git {} {}", "{techAction}", "{branch}");`,
+        `let _file = "{file}";`,
+        `let _signal = "{signal}";`
+      ]
+    };
+
+    const eggs = [
+      "今日编码诗意指数：92%",
+      "编译通过，浪漫无警告。",
+      "单元测试：心动 100% 覆盖。",
+      "你写的是代码，我看到的是银河。",
+      "Git 提示：已提交《想念》到 main 分支。",
+      "终端状态：爱意已在后台守护。",
+      "Lint 结果：格式完美，情绪超标。"
+    ];
+
+    const styleSwitcher = document.getElementById("styleSwitcher");
+    const generateBtn = document.getElementById("generateBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const poemContent = document.getElementById("poemContent");
+    const statusText = document.getElementById("statusText");
+    const eggText = document.getElementById("eggText");
+    const recentList = document.getElementById("recentList");
+    const emptyTip = document.getElementById("emptyTip");
+    const clearRecentBtn = document.getElementById("clearRecentBtn");
+
+    const STORAGE_KEY = "code-poems-recent";
+    const RECENT_LIMIT = 20;
+    let currentStyle = "python";
+    let currentPoem = "";
+
+    function randomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function fillTemplate(template) {
+      return template.replace(/\{(\w+)\}/g, (_, key) => {
+        const bank = words[key];
+        return Array.isArray(bank) ? randomItem(bank) : `{${key}}`;
+      });
+    }
+
+    function randomLineCount() {
+      return Math.floor(Math.random() * 7) + 4; // 4~10
+    }
+
+    function trimToLineCount(text, maxLines) {
+      const lines = text.split("\n");
+      if (lines.length <= maxLines) return text;
+      return lines.slice(0, maxLines).join("\n");
+    }
+
+    function pickUniqueItems(arr, count) {
+      const pool = [...arr];
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, count);
+    }
+
+    function buildRichPoem(style, lineTarget) {
+      const source = templates[style] || [];
+      const base = fillTemplate(randomItem(source));
+
+      const extras = addOns[style] || [];
+      const extraCount = extras.length ? Math.floor(Math.random() * 3) + 1 : 0; // 1~3
+      const picked = pickUniqueItems(extras, extraCount).map(fillTemplate);
+      const merged = [base, ...picked].join("\n");
+
+      return trimToLineCount(merged, lineTarget);
+    }
+
+    // 针对展示做轻量高亮，保持原始文本不变
+    function highlightPoem(poem) {
+      const escaped = poem
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+
+      // 单次匹配替换，避免多轮 replace 把已插入的 HTML 标签再次匹配破坏
+      const tokenRegex =
+        /(["'`][^"'`\n]*["'`])|\b(try|except|finally|pass|def|class|import|from|if|else|raise|for|in|while|return|async|await|new|const|let|function|throw|public|static|void|package|func|defer|struct|impl|fn|mut|match|panic|int|char|typedef)\b|\b(console\.log|setTimeout|Promise|print|printf|puts|fprintf|System\.out\.println|fmt\.Println|println!)\b|(\$|=>|::|->|\|\||&&|\|>)|\b(\d+|1e3)\b/g;
+
+      return escaped.replace(
+        tokenRegex,
+        (match, strToken, kwToken, fnToken, symToken, numToken) => {
+          if (strToken) return `<span class="str">${match}</span>`;
+          if (kwToken) return `<span class="kw">${match}</span>`;
+          if (fnToken) return `<span class="fn">${match}</span>`;
+          if (symToken) return `<span class="sym">${match}</span>`;
+          if (numToken) return `<span class="num">${match}</span>`;
+          return match;
+        }
+      );
+    }
+
+    function saveRecent(poem, style) {
+      const recent = loadRecent();
+      recent.unshift({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        poem,
+        style,
+        time: new Date().toLocaleString("zh-CN", { hour12: false })
+      });
+      const next = recent.slice(0, RECENT_LIMIT);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      renderRecent(next);
+    }
+
+    function loadRecent() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const data = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(data)) return [];
+        return data.map((item, index) => ({
+          id: item.id || `legacy-${index}`,
+          poem: item.poem || "",
+          style: item.style || "unknown",
+          time: item.time || ""
+        }));
+      } catch {
+        return [];
+      }
+    }
+
+    function persistRecent(list) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, RECENT_LIMIT)));
+    }
+
+    function deleteRecentById(id) {
+      const next = loadRecent().filter((item) => item.id !== id);
+      persistRecent(next);
+      renderRecent(next);
+    }
+
+    function clearRecent() {
+      localStorage.removeItem(STORAGE_KEY);
+      renderRecent([]);
+      statusText.textContent = "已清空本地记录。";
+    }
+
+    function renderRecent(list) {
+      recentList.innerHTML = "";
+      emptyTip.style.display = list.length ? "none" : "block";
+
+      list.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = "recent-item";
+        li.innerHTML = `
+          <div class="recent-meta">
+            <span>${item.time} · ${item.style}</span>
+            <button class="btn-small btn-danger" type="button" data-delete-id="${item.id}">删除</button>
+          </div>
+          <pre class="recent-poem"></pre>
+        `;
+        li.querySelector(".recent-poem").textContent = item.poem;
+        recentList.appendChild(li);
+      });
+    }
+
+    function updateEgg() {
+      eggText.textContent = `✨ ${randomItem(eggs)}`;
+    }
+
+    function generatePoem() {
+      const lineTarget = randomLineCount();
+      currentPoem = buildRichPoem(currentStyle, lineTarget);
+
+      poemContent.classList.remove("fade-in");
+      void poemContent.offsetWidth;
+      poemContent.classList.add("fade-in");
+      poemContent.innerHTML = highlightPoem(currentPoem);
+
+      statusText.textContent = `已生成：${currentStyle.toUpperCase()} 风格 · ${currentPoem.split("\n").length} 行`;
+      updateEgg();
+      saveRecent(currentPoem, currentStyle);
+    }
+
+    async function copyPoem() {
+      if (!currentPoem) return;
+      const plain = currentPoem;
+      const html = `<pre style="margin:0;font-family:Consolas,monospace;white-space:pre-wrap;">${poemContent.innerHTML}</pre>`;
+
+      try {
+        if (window.ClipboardItem && navigator.clipboard?.write) {
+          const item = new ClipboardItem({
+            "text/plain": new Blob([plain], { type: "text/plain" }),
+            "text/html": new Blob([html], { type: "text/html" })
+          });
+          await navigator.clipboard.write([item]);
+        } else if (navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(plain);
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = plain;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          ta.remove();
+        }
+        statusText.textContent = "已复制到剪贴板。";
+      } catch (err) {
+        statusText.innerHTML = `<span class="err">复制失败：${err.message || "浏览器限制"}</span>`;
+      }
+    }
+
+    styleSwitcher.addEventListener("click", (event) => {
+      const btn = event.target.closest(".style-btn");
+      if (!btn) return;
+      currentStyle = btn.dataset.style;
+
+      [...styleSwitcher.querySelectorAll(".style-btn")].forEach((el) => {
+        el.classList.toggle("active", el === btn);
+      });
+      generatePoem();
+    });
+
+    generateBtn.addEventListener("click", generatePoem);
+    copyBtn.addEventListener("click", copyPoem);
+    clearRecentBtn.addEventListener("click", clearRecent);
+    recentList.addEventListener("click", (event) => {
+      const btn = event.target.closest("[data-delete-id]");
+      if (!btn) return;
+      deleteRecentById(btn.dataset.deleteId);
+      statusText.textContent = "已删除该条记录。";
+    });
+
+    renderRecent(loadRecent());
+    generatePoem();
+  </script>
+</body>
+</html>
